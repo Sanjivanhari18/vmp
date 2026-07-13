@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VMP — Vendor Management Platform</title>
+  <link rel="stylesheet" href="assets/css/vmp.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar role-taq" id="sidebar">
+      <div class="sidebar-brand">
+        VMP Portal
+        <span id="sidebar-subtitle">Vendor Management Platform</span>
+      </div>
+      <div class="sidebar-role-label" id="sidebar-role-label">TAQ Orchestrator / System Admin</div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div id="sidebar-footer" style="padding:.5rem 0 1rem;border-top:1px solid #334155"></div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Dashboard</h2>
+          <div class="breadcrumb">VMP</div>
+        </div>
+        <div class="topbar-right">
+          <label for="role-switcher" style="font-size:.8rem;color:var(--muted);white-space:nowrap">View as:</label>
+          <select id="role-switcher" style="padding:.4rem .6rem;border-radius:6px;border:1px solid var(--border);font-size:.85rem;min-width:200px">
+            <option value="taq">TAQ Orchestrator / System Admin</option>
+            <option value="hr">HR Operations</option>
+            <option value="finance">Finance</option>
+            <option value="manager">Contractor's Manager</option>
+            <option value="contractor">Contractor</option>
+            <option value="vendor">Vendor Side Manager</option>
+          </select>
+          <span class="role-badge taq" id="role-badge">TAQ Orchestrator / System Admin</span>
+          <div class="notif-bell" title="Notifications">🔔<span class="notif-count">5</span></div>
+        </div>
+      </header>
+      <main class="content" id="screen-content"></main>
+    </div>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/screen-helpers.js"></script>
+  <script src="assets/js/screens.js"></script>
+  <script src="assets/js/mock-actions.js"></script>
+  <script src="assets/js/router.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

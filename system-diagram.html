@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VMP — System Diagram</title>
+  <link rel="stylesheet" href="assets/css/vmp.css">
+  <style>
+    .diagram-page { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .actor-box { border-radius: 8px; padding: 1rem; color: #fff; min-height: 180px; }
+    .actor-box h3 { font-size: .95rem; margin-bottom: .75rem; }
+    .actor-box ul { font-size: .8rem; padding-left: 1.2rem; line-height: 1.8; }
+    .flow-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; }
+    .flow-section h3 { margin-bottom: 1rem; }
+    .flow-section ol { padding-left: 1.5rem; line-height: 2; font-size: .9rem; }
+    .system-wide { border: 2px dashed var(--border); border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+  </style>
+</head>
+<body style="background:var(--bg)">
+  <div class="diagram-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <div>
+        <h1 style="font-size:1.5rem">VMP System Interaction Diagram</h1>
+        <p style="color:var(--muted);font-size:.875rem">Reference: Excel Requirements — Sheet 2 (System Diagram)</p>
+      </div>
+      <a href="index.html" class="btn btn-primary">← Back to Portal</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+      <div class="actor-box" style="background:#7c3aed">
+        <h3>TAQ Orchestrator / System Admin</h3>
+        <ul>
+          <li>MRF intake & post job positions to vendors</li>
+          <li>Route vendor-shortlisted profiles to managers</li>
+          <li>Monitor end-to-end hiring pipeline</li>
+          <li>Super admin: users, roles, permissions</li>
+          <li>Does NOT schedule interviews, onboard, or run BGV</li>
+        </ul>
+      </div>
+      <div class="actor-box" style="background:#2563eb">
+        <h3>HR Operations</h3>
+        <ul>
+          <li>Schedule interviews after manager selection</li>
+          <li>Send offers & contractor onboarding</li>
+          <li>BGV, documents, assignments</li>
+          <li>Register/activate vendors & compliance</li>
+          <li>Send approved hours to Finance</li>
+        </ul>
+      </div>
+      <div class="actor-box" style="background:#dc2626">
+        <h3>Finance</h3>
+        <ul>
+          <li>Rate card & billing history</li>
+          <li>Raise invoices after approval</li>
+          <li>Finance payment batches</li>
+          <li>Dual approval &gt; $10,000</li>
+          <li>Quarterly spend reports</li>
+        </ul>
+      </div>
+      <div class="actor-box" style="background:#ea580c">
+        <h3>Contractor's Manager</h3>
+        <ul>
+          <li>Raise MRF to TAQ</li>
+          <li>Review profiles forwarded by TAQ</li>
+          <li>Select candidates needed for role</li>
+          <li>Approve contractor timesheets</li>
+          <li>Performance ratings & SOW feedback</li>
+        </ul>
+      </div>
+      <div class="actor-box" style="background:#0891b2">
+        <h3>Vendor Side Manager</h3>
+        <ul>
+          <li>Respond to TA job orders (Step 16)</li>
+          <li>Submit candidate profiles</li>
+          <li>Onboarding & offboarding coordination</li>
+          <li>SOW compliance & deliverables</li>
+          <li>Approve finance payments (Step 18)</li>
+          <li>Track end dates & performance</li>
+        </ul>
+      </div>
+      <div class="actor-box" style="background:#16a34a">
+        <h3>Contractor</h3>
+        <ul>
+          <li>Submit documents to HR</li>
+          <li>Cooperate with HR on interviews</li>
+          <li>Submit weekly timesheets</li>
+          <li>Upload documents via portal</li>
+          <li>Request leave</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow-section">
+      <h3>End-to-End Journeys</h3>
+      <ol>
+        <li><strong>Hiring Orchestration:</strong> Manager MRF → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding → Finance rate → Timesheet → Manager approval → Finance batch → Invoice → <strong>Vendor payment approval</strong></li>
+        <li><strong>Assignment Transfer:</strong> Initiate Transfer → Select New Project/Manager → Approval → Close Old Assignment → Open New → Notify Stakeholders → Clear Anomaly</li>
+        <li><strong>Contractor Exit:</strong> End Date Trigger → Exit Checklist → Access Revocation → Final Timesheet → Invoice Closure → Record Archive → Stakeholder Notifications</li>
+      </ol>
+    </div>
+
+    <div class="system-wide">
+      <h3 style="margin-bottom:.75rem">System-Wide (All Actors)</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;font-size:.85rem">
+        <div><strong>RBAC & SSO</strong><br>Role-based access, Entra ID login</div>
+        <div><strong>Document Repository</strong><br>Central store, version history</div>
+        <div><strong>Audit Log</strong><br>Immutable change history</div>
+        <div><strong>Notifications</strong><br>Email & in-app at workflow triggers</div>
+        <div><strong>Digital Agreements</strong><br>Create, sign, store contracts</div>
+        <div><strong>Approval Engine</strong><br>Generic workflow for all entities</div>
+        <div><strong>Anomaly Detection</strong><br>Stale managers, missing rates</div>
+        <div><strong>Dashboards & Reports</strong><br>Role-based operational views</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
