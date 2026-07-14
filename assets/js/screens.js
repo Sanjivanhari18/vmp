@@ -8,7 +8,7 @@ const Screens = {
     const pendingJobOrders = VMP_DATA.jobOrders.filter(j => j.response_status === 'Pending Response').length;
     const activePipeline = VMP_DATA.candidates.filter(c => !['Onboarded', 'Rejected'].includes(c.stage)).length;
     return SH.actorBanner() + UI.statsGrid([
-      { value: VMP_DATA.mrfs.filter(m => m.status === 'Raised').length, label: 'MRFs Awaiting Intake', nav: 'taq/mrf', class: 'warning' },
+      { value: VMP_DATA.mfrs.filter(m => m.status === 'Raised').length, label: 'MFRs Awaiting Intake', nav: 'taq/mfr', class: 'warning' },
       { value: pendingJobOrders, label: 'Job Orders Awaiting Vendor', nav: 'taq/job-orders', class: 'warning' },
       { value: awaitingRouting, label: 'Profiles to Route', nav: 'taq/candidate-routing', class: 'warning' },
       { value: activePipeline, label: 'Pipeline (Monitor Only)', nav: 'taq/pipeline' }
@@ -18,7 +18,7 @@ const Screens = {
         const action = { 'Submitted': 'Route to manager', 'Forwarded to Manager': 'Manager reviews', 'Manager Selected': 'HR schedules interview' }[c.stage];
         return `<tr data-nav="${c.stage === 'Submitted' ? 'taq/candidate-routing' : c.stage === 'Forwarded to Manager' ? 'manager/candidate-review' : 'hr/interviews'}"><td>${c.name}</td><td>${VMP.getVendor(c.vendor_id)?.vendor_name}</td><td>${UI.badge(c.stage)}</td><td>${owner}</td><td>${action}</td></tr>`;
       })
-    )) + UI.alert('info', 'TAQ orchestrates hiring flow and system admin — does not schedule interviews, onboard candidates, or run BGV. Those are HR Ops responsibilities.');
+    )) + SH.expiringSoonWidget() + UI.alert('info', 'TAQ orchestrates hiring flow and system admin — does not schedule interviews, onboard candidates, or run BGV. Those are HR Ops responsibilities.');
   },
 
   'dashboard-main': () => {
@@ -51,7 +51,7 @@ const Screens = {
     VMP_DATA.contractors.filter(c => c.status === 'Onboarding').map(c =>
       `<tr data-nav="contractors/profile?id=${c.id}"><td>${c.full_name}</td><td>${VMP.getVendor(c.vendor_id)?.vendor_name}</td><td>${UI.badge(c.onboarding_stage)}</td><td>${UI.badge(c.bgv_status)}</td><td>${VMP.formatDate(c.joining_date)}</td></tr>`
     ), 'No contractors in onboarding'
-  )),
+  )) + SH.expiringSoonWidget(),
 
   'dashboard-finance': () => SH.actorBanner() + UI.statsGrid([
     { value: VMP_DATA.invoices.filter(i => i.payment_status === 'Pending').length, label: 'Pending Invoices', nav: 'finance/invoices', class: 'warning' },
@@ -78,14 +78,24 @@ const Screens = {
 
   'dashboard-contractor': () => {
     const c = VMP.getContractor('c1');
+    const a = VMP.getActiveAssignment('c1');
+    const bal = VMP.getContractorLeaveBalance('c1');
     const pendingTs = VMP_DATA.timesheets.filter(t => t.contractor_id === 'c1' && t.contractor_confirmation_status === 'Pending');
+    const myAssignment = UI.card('My Assignment', UI.detailRows([
+      { label: 'Project', value: c.project_name || VMP.getProject(a?.project_id)?.project_name || '—' },
+      { label: 'Reporting Manager', value: VMP.getUser(a?.reporting_manager_id)?.full_name || '—' },
+      { label: 'Vendor', value: VMP.getVendor(c.vendor_id)?.vendor_name },
+      { label: 'Pay Rate', value: c.pay_rate ? VMP.formatCurrency(c.pay_rate) + '/mo' : '—' },
+      { label: 'Contract End Date', value: VMP.formatDate(c.contract_end_date) + (VMP.daysUntil(c.contract_end_date) !== null && VMP.daysUntil(c.contract_end_date) <= 90 ? ' ' + UI.badge('Ending Soon') : '') },
+      { label: 'Leave Balance', value: `Annual ${bal.annual} · Sick ${bal.sick} · Personal ${bal.personal}` }
+    ]));
     return SH.actorBanner() + UI.alert('info', 'Welcome, Amit Joshi — Contractor Portal') +
     UI.statsGrid([
       { value: pendingTs.length, label: 'Pending Confirmation', nav: 'contractor/timesheet' },
       { value: VMP_DATA.leaveRecords.filter(l => l.contractor_id === 'c1' && l.leave_status === 'Pending').length, label: 'Leave Requests', nav: 'contractor/leave' },
       { value: '2', label: 'Documents Due', nav: 'contractor/documents', class: 'warning' },
       { value: UI.badge('Active'), label: 'Status' }
-    ]) + UI.card('Announcements', '<ul><li>Company Foundation Day — June 5 (Holiday)</li><li>Please submit timesheets by Friday 5 PM</li></ul>');
+    ]) + myAssignment + UI.card('Announcements', '<ul><li>Company Foundation Day — June 5 (Holiday)</li><li>Please submit timesheets by Friday 5 PM</li></ul>');
   },
 
   'dashboard-leadership': () => UI.statsGrid([
@@ -148,9 +158,10 @@ const Screens = {
   ])),
 
   'admin-approvals': () => {
-    const approvalTable = UI.table(['Entity','Type','Requester','Stage','SLA','Priority','Status','Actions'],
-      VMP_DATA.approvals.map(a => `<tr data-nav="admin/approval-detail?id=${a.id}"><td>${a.entity_id}</td><td>${a.entity_type}</td><td>${VMP.getUser(a.requester)?.full_name || a.requester}</td><td>${a.current_stage}</td><td>${a.sla}</td><td>${a.priority}</td><td>${UI.badge(a.status)}</td><td>${a.status==='Pending'?UI.approveRejectButtons(a.entity_type,a.entity_id):'—'}</td></tr>`)
+    const approvalTable = UI.table(['Entity','Type','Requester','Owner','Stage','SLA','Priority','Status','Actions'],
+      VMP_DATA.approvals.map(a => `<tr data-nav="admin/approval-detail?id=${a.id}"><td>${a.entity_id}</td><td>${a.entity_type}</td><td>${VMP.getUser(a.requester)?.full_name || a.requester}</td><td><span class="badge ${a.approver_role==='HR Ops'?'badge-active':'badge-draft'}">${a.approver_role||'—'}</span></td><td>${a.current_stage}</td><td>${a.sla}</td><td>${a.priority}</td><td>${UI.badge(a.status)}</td><td>${a.status==='Pending'?UI.approveRejectButtons(a.entity_type,a.entity_id):'—'}</td></tr>`)
     );
+    const ownershipNote = VMP.currentRole === 'taq' ? UI.alert('info', 'Ownership: Background Verification (BGV) and contractor activation are owned by <strong>HR Ops</strong>, not TAQ. TAQ sees the full queue for oversight but does not action HR-owned steps. The "Owner" column shows the responsible role for each item.') : '';
     const steps = ['Submitted', 'Role Review', 'Finance Review', 'Approved / Rejected'];
     const panels = [
       UI.card('Submitted', UI.alert('info', 'New requests enter the queue after submission.') + approvalTable),
@@ -161,14 +172,20 @@ const Screens = {
           `<tr data-nav="admin/approval-detail?id=${a.id}"><td>${a.entity_id}</td><td>${a.entity_type}</td><td>${UI.badge(a.status)}</td></tr>`)
       ))
     ];
-    return SH.workflowBanner('Central Approval Queue', steps, 'Role Review',
-      'Approvals route to the correct actor by type: Vendor → Finance, Rate → Finance, Transfer → HR + Manager, MRF → TAQ.',
+    return ownershipNote + SH.workflowBanner('Central Approval Queue', steps, 'Role Review',
+      'Approvals route to the correct actor by type: Vendor → Finance, Rate → Finance, Transfer → HR + Manager, MFR → TAQ, BGV / Activation → HR Ops.',
       panels);
   },
 
   'admin-approval-detail': () => SH.renderApprovalDetail(),
 
-  'admin-audit': () => UI.toolbar(['<input type="search" placeholder="Filter by entity, user, date..." class="search-input">','<button class="btn btn-secondary btn-sm">Export</button>']) +
+  'admin-audit': () => UI.toolbar([
+      '<input type="search" placeholder="Search entity or user..." class="search-input">',
+      '<label style="font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.35rem">From <input type="date" value="2025-06-01"></label>',
+      '<label style="font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.35rem">To <input type="date" value="2025-06-30"></label>',
+      '<button class="btn btn-secondary btn-sm">Apply Filter</button>',
+      '<button class="btn btn-secondary btn-sm">Export</button>'
+    ]) +
     UI.card('Audit Log', UI.table(['Entity','Action','Old Value','New Value','By','At'],
       VMP_DATA.auditLogs.map(a => `<tr><td>${a.entity_type} ${a.entity_id}</td><td>${a.action}</td><td>${a.old_value||'—'}</td><td>${a.new_value||'—'}</td><td>${VMP.getUser(a.performed_by)?.full_name||a.performed_by}</td><td>${a.performed_at}</td></tr>`)
     )),
@@ -177,15 +194,20 @@ const Screens = {
     { label: 'Templates', content: UI.table(['Code','Channel','Subject','Status','Actions'],
       VMP_DATA.notificationTemplates.map(t => `<tr><td>${t.template_code}</td><td>${t.channel}</td><td>${t.subject}</td><td>${UI.badge(t.status)}</td><td><button class="btn btn-sm btn-secondary">Edit</button></td></tr>`)
     )},
-    { label: 'Notification Log', content: UI.table(['Recipient','Event','Entity','Channel','Status','Sent'],
-      VMP_DATA.notifications.map(n => `<tr><td>${VMP.getUser(n.recipient_user_id)?.full_name||n.recipient_user_id}</td><td>${n.event}</td><td>${n.entity_type} ${n.entity_id}</td><td>${n.channel}</td><td>${UI.badge(n.status)}</td><td>${n.sent_at}</td></tr>`)
+    { label: 'Notification Log', content: UI.table(['Recipient','Event','Entity','Channel','Read','Sent','Open'],
+      VMP_DATA.notifications.map(n => `<tr class="${n.read ? '' : 'row-blocked'}"><td>${VMP.getUser(n.recipient_user_id)?.full_name||n.recipient_user_id||'—'}</td><td>${n.event}</td><td>${n.entity_type} ${n.entity_id}</td><td>${n.channel}</td><td>${n.read ? 'Read' : UI.badge('Pending')}</td><td>${n.sent_at}</td><td>${n.nav ? `<a href="#${n.nav}" class="btn btn-sm btn-secondary">Open</a>` : '—'}</td></tr>`)
     )}
   ]),
 
   // ========== VENDORS & PROJECTS ==========
   'vendors-list': () => UI.toolbar(['<input type="search" placeholder="Search vendors..." class="search-input">','<a href="#vendors/register" class="btn btn-primary btn-sm">+ New Vendor</a>']) +
-    UI.card('Vendors', UI.table(['Code','Name','Contact','GST/PAN','Compliance','Approval','Status','Contractors'],
-      VMP_DATA.vendors.map(v => `<tr data-nav="vendors/detail?id=${v.id}"><td>${v.vendor_code}</td><td>${v.vendor_name}</td><td>${v.contact_name}</td><td>${v.gst_number}</td><td>${UI.badge(v.compliance_status)}</td><td>${UI.badge(v.approval_status)}</td><td>${UI.badge(v.status)}</td><td>${VMP.getVendorContractors(v.id).length}</td></tr>`)
+    UI.card('Vendors', UI.table(['Code','Name','Contact','Contract Start','Contract End','Compliance','Status','Contract Doc','Contractors'],
+      VMP_DATA.vendors.map(v => {
+        const days = VMP.daysUntil(v.contract_end_date);
+        const expiryFlag = days !== null && days <= 90 ? ` <span class="badge ${days < 0 ? 'badge-rejected' : 'badge-pending'}">${days < 0 ? 'Expired' : days + 'd left'}</span>` : '';
+        const docCell = v.contract_document ? `<button class="btn btn-sm btn-secondary">Open</button>` : '<span style="color:var(--muted);font-size:.75rem">Not uploaded</span>';
+        return `<tr data-nav="vendors/detail?id=${v.id}"><td>${v.vendor_code}</td><td>${v.vendor_name}</td><td>${v.contact_name}</td><td>${VMP.formatDate(v.contract_start_date)}</td><td>${VMP.formatDate(v.contract_end_date)}${expiryFlag}</td><td>${UI.badge(v.compliance_status)}</td><td>${UI.badge(v.status)}</td><td>${docCell}</td><td>${VMP.getVendorContractors(v.id).length}</td></tr>`;
+      })
     )),
 
   'vendors-register': () => {
@@ -235,9 +257,17 @@ const Screens = {
     return UI.processFlow(steps, 3, { panels });
   },
 
-  'vendors-compliance': () => UI.card('Compliance Documents', UI.table(['Vendor','Type','Document','Expiry','Status','Verified By','Actions'],
-    VMP_DATA.vendorDocuments.map(d => `<tr><td>${VMP.getVendor(d.vendor_id)?.vendor_name}</td><td>${d.document_type}</td><td>${d.document_name}</td><td>${VMP.formatDate(d.expiry_date)}</td><td>${UI.badge(d.verification_status)}</td><td>${VMP.getUser(d.verified_by)?.full_name||'—'}</td><td><button class="btn btn-sm btn-secondary">Download</button></td></tr>`)
-  )),
+  'vendors-compliance': () => {
+    const expiringDocs = VMP_DATA.vendorDocuments.filter(d => { const dd = VMP.daysUntil(d.expiry_date); return dd !== null && dd <= 90; });
+    const banner = expiringDocs.length ? UI.alert('warning', `⚠ ${expiringDocs.length} document(s) expiring within 90 days — renew before they lapse.`) : '';
+    return banner + UI.card('Compliance Documents', UI.table(['Vendor','Type','Document','Expiry','Renewal Due','Expiry Window','Status','Actions'],
+      VMP_DATA.vendorDocuments.map(d => {
+        const days = VMP.daysUntil(d.expiry_date);
+        const windowBadge = days === null ? '—' : UI.badge(VMP.expiryBucket(days));
+        return `<tr><td>${VMP.getVendor(d.vendor_id)?.vendor_name}</td><td>${d.document_type}</td><td>${d.document_name}</td><td>${VMP.formatDate(d.expiry_date)}</td><td>${VMP.formatDate(d.renewal_date)}</td><td>${windowBadge}</td><td>${UI.badge(d.verification_status)}</td><td><button class="btn btn-sm btn-secondary">Download</button> ${days !== null && days <= 90 ? '<button class="btn btn-sm btn-primary">Renew</button>' : ''}</td></tr>`;
+      })
+    ));
+  },
 
   'vendors-detail': () => {
     const id = Router.getQueryParam('id') || 'v1';
@@ -250,7 +280,10 @@ const Screens = {
       { label: 'Details', content: UI.detailRows([
         { label: 'Status', value: UI.badge(v.status) }, { label: 'Approval', value: UI.badge(v.approval_status) },
         { label: 'GST', value: v.gst_number }, { label: 'PAN', value: v.pan_number },
-        { label: 'Contact', value: `${v.contact_name} — ${v.contact_email}` }, { label: 'Compliance', value: UI.badge(v.compliance_status) }
+        { label: 'Contact', value: `${v.contact_name} — ${v.contact_email}` }, { label: 'Compliance', value: UI.badge(v.compliance_status) },
+        { label: 'Contract Start', value: VMP.formatDate(v.contract_start_date) },
+        { label: 'Contract End', value: VMP.formatDate(v.contract_end_date) + (VMP.daysUntil(v.contract_end_date) !== null && VMP.daysUntil(v.contract_end_date) <= 90 ? ' ' + UI.badge(VMP.daysUntil(v.contract_end_date) < 0 ? 'Expired' : 'Renewal Due') : '') },
+        { label: 'Signed Contract', value: v.contract_document ? `<span class="entity-link">${v.contract_document}</span> <button class="btn btn-sm btn-secondary">Open Document</button>` : '<span style="color:var(--muted)">Not uploaded</span>' }
       ])},
       { label: 'Compliance Docs', content: UI.table(['Type','Document','Expiry','Status'],
         docs.map(d => `<tr><td>${d.document_type}</td><td>${d.document_name}</td><td>${VMP.formatDate(d.expiry_date)}</td><td>${UI.badge(d.verification_status)}</td></tr>`)
@@ -326,11 +359,16 @@ const Screens = {
       '<input type="search" placeholder="Search contractors..." class="search-input">',
       '<select><option>All Status</option><option>Active</option><option>Onboarding</option></select>',
       ...(VMP.currentRole !== 'manager' ? ['<a href="#contractors/create" class="btn btn-primary btn-sm">+ New Contractor</a>'] : [])
-    ]) + UI.card(title, UI.table(['Code','Name','Vendor','Project','Manager','Rate','BGV','Status'],
+    ]) + UI.card(title, UI.table(['Code','Name','Vendor','Project','Manager','Rate','BGV','Status','Quick Actions'],
       list.map(c => {
         const a = VMP.getActiveAssignment(c.id);
         const r = VMP.getActiveRate(c.id);
-        return `<tr data-nav="contractors/profile?id=${c.id}"><td>${c.contractor_code}</td><td>${c.full_name}</td><td><span class="entity-link" data-nav="vendor/${c.vendor_id}">${VMP.getVendor(c.vendor_id)?.vendor_name}</span></td><td>${a?VMP.getProject(a.project_id)?.project_code:'—'}</td><td>${a?VMP.getUser(a.reporting_manager_id)?.full_name||'⚠ Missing':'—'}</td><td>${r?UI.badge('Approved'):UI.badge('Missing')}</td><td>${UI.badge(c.bgv_status)}</td><td>${UI.badge(c.status)}</td></tr>`;
+        const fixes = [];
+        if (!r) fixes.push(`<a href="#rates/create" class="btn btn-sm btn-primary">Fix Rate</a>`);
+        if (c.bgv_status !== 'Cleared') fixes.push(`<a href="#bgv/tracker" class="btn btn-sm btn-secondary">Resolve BGV</a>`);
+        if (a && !a.reporting_manager_id) fixes.push(`<a href="#assignments/transfer" class="btn btn-sm btn-secondary">Set Manager</a>`);
+        const actions = fixes.length ? fixes.join(' ') : `<a href="#contractors/profile?id=${c.id}" class="btn btn-sm btn-secondary">View</a>`;
+        return `<tr data-nav="contractors/profile?id=${c.id}"><td>${c.contractor_code}</td><td>${c.full_name}</td><td><span class="entity-link" data-nav="vendor/${c.vendor_id}">${VMP.getVendor(c.vendor_id)?.vendor_name}</span></td><td>${a?VMP.getProject(a.project_id)?.project_code:'—'}</td><td>${a?VMP.getUser(a.reporting_manager_id)?.full_name||'⚠ Missing':'—'}</td><td>${r?UI.badge('Approved'):UI.badge('Missing')}</td><td>${UI.badge(c.bgv_status)}</td><td>${UI.badge(c.status)}</td><td>${actions}</td></tr>`;
       }),
       VMP.currentRole === 'manager' ? 'No contractors assigned to your team' : 'No contractors found'
     ));
@@ -419,26 +457,45 @@ const Screens = {
 
   'contractors-onboarding': () => SH.renderOnboardingPipeline(),
 
-  'contractors-deboarding': () => UI.card('Exit Checklist — Lakshmi Venkat (CON-006)', UI.checklist([
-    { label: 'Access revocation', owner: 'IT Admin', done: false }, { label: 'Final timesheet closure', owner: 'Finance', done: false },
-    { label: 'Final invoice raised', owner: 'Finance', done: false }, { label: 'Document archive', owner: 'HR Ops', done: false },
-    { label: 'Equipment return', owner: 'Facilities', done: true }, { label: 'Exit notification to stakeholders', owner: 'System', done: false }
-  ]) + UI.alert('info', 'Exit triggered for end date June 30, 2025. Notifications sent to Finance, IT, Manager, and Vendor Side Manager.') +
-  '<div class="form-actions"><button class="btn btn-danger btn-sm">Revoke Access</button><button class="btn btn-primary btn-sm">Complete Exit & Archive</button></div>'),
+  'contractors-deboarding': () => {
+    const finalInvoice = VMP_DATA.invoices.find(i => i.project_id === 'p1') || VMP_DATA.invoices[0];
+    const steps = [
+      { label: 'Access revocation', owner: 'IT Admin', status: 'In Progress', detail: 'AD, VPN, email deprovision', link: '' },
+      { label: 'Final timesheet closure', owner: 'HR Ops', status: 'HR Approved', detail: 'Last period Jun 23–27 approved', link: '' },
+      { label: 'Final invoice raised', owner: 'Finance', status: finalInvoice ? finalInvoice.invoice_stage : 'Pending', detail: finalInvoice ? `${finalInvoice.invoice_number} · ${VMP.formatCurrency(finalInvoice.invoice_amount)} · ${VMP.formatDate(finalInvoice.billing_period_start)}–${VMP.formatDate(finalInvoice.billing_period_end)}` : 'No invoice linked', link: finalInvoice ? `invoices/detail?id=${finalInvoice.id}` : '' },
+      { label: 'Document archive', owner: 'HR Ops', status: 'Pending', detail: 'Contracts, IDs, tax forms', link: '' },
+      { label: 'Equipment return', owner: 'Facilities', status: 'Completed', detail: 'Laptop + access card returned', link: '' },
+      { label: 'Exit notification to stakeholders', owner: 'System', status: 'Pending', detail: 'Finance, IT, Manager, Vendor', link: '' }
+    ];
+    return UI.card('Exit Checklist — Lakshmi Venkat (CON-006)', UI.table(['Step', 'Owner', 'Live Status', 'Detail', 'Action'],
+      steps.map(s => `<tr ${s.link ? `data-nav="${s.link}"` : ''}><td>${s.label}</td><td>${s.owner}</td><td>${UI.badge(s.status)}</td><td style="font-size:.8rem;color:var(--muted)">${s.detail}</td><td>${s.link ? `<a href="#${s.link}" class="btn btn-sm btn-secondary">Open Invoice</a>` : (s.status === 'Pending' || s.status === 'In Progress' ? '<button class="btn btn-sm btn-secondary">Nudge Owner</button>' : '—')}</td></tr>`)
+    ) + UI.alert('info', 'Live status is tied to each owning team (IT, Finance, HR Ops) — not a shared checkbox. The final invoice line links to the actual invoice record.') +
+    UI.alert('warning', 'Exit triggered for end date June 30, 2025. Notifications sent to Finance, IT, Manager, and Vendor Side Manager.') +
+    '<div class="form-actions"><button class="btn btn-danger btn-sm">Revoke Access</button><button class="btn btn-primary btn-sm">Complete Exit & Archive</button></div>');
+  },
 
   'bgv-tracker': () => UI.card('BGV Tracker', UI.table(['Contractor','Vendor','Initiated','Completed','Status','Verified By','Actions'],
     VMP_DATA.bgvRecords.map(b => `<tr data-nav="contractors/profile?id=${b.contractor_id}"><td>${VMP.getContractor(b.contractor_id)?.full_name}</td><td>${VMP.getVendor(b.vendor_id)?.vendor_name}</td><td>${VMP.formatDate(b.initiated_date)}</td><td>${VMP.formatDate(b.completed_date)}</td><td>${UI.badge(b.bgv_status)}</td><td>${VMP.getUser(b.verified_by)?.full_name||'—'}</td><td><button class="btn btn-sm btn-secondary">Upload Report</button></td></tr>`)
   )),
 
   // ========== ASSIGNMENTS & RATES ==========
-  'assignments-list': () => UI.toolbar(['<a href="#assignments/transfer" class="btn btn-primary btn-sm">Transfer Contractor</a>','<button class="btn btn-secondary btn-sm">Export</button>']) +
-    UI.card('Assignments', UI.table(['Contractor','Project','Reporting Manager','Vendor','Start','End','Allocation','Status'],
-      VMP_DATA.assignments.map(a => `<tr data-nav="contractors/profile?id=${a.contractor_id}"><td>${VMP.getContractor(a.contractor_id)?.full_name}</td><td>${VMP.getProject(a.project_id)?.project_name} ${VMP.getProject(a.project_id)?.status==='Inactive'?'⚠':''}</td><td>${VMP.getUser(a.reporting_manager_id)?.full_name||'⚠ Missing'}</td><td>${VMP.getVendor(a.vendor_id)?.vendor_name}</td><td>${VMP.formatDate(a.start_date)}</td><td>${VMP.formatDate(a.end_date)}</td><td>${a.allocation_percentage}%</td><td>${UI.badge(a.assignment_status)}</td></tr>`)
+  'assignments-list': () => UI.toolbar(['<button class="btn btn-secondary btn-sm">Export</button>']) +
+    UI.alert('info', 'To transfer someone, pick their row below and click <strong>Transfer</strong> — the transfer flow opens pre-filled for that contractor. (No more standalone button without context.)') +
+    UI.card('Assignments', UI.table(['Contractor','Project','Reporting Manager','Vendor','Start','End','Allocation','Status','Action'],
+      VMP_DATA.assignments.filter(a => a.assignment_status === 'Active').map(a => `<tr data-nav="contractors/profile?id=${a.contractor_id}"><td><strong>${VMP.getContractor(a.contractor_id)?.full_name}</strong><br><span style="font-size:.72rem;color:var(--muted)">${VMP.getContractor(a.contractor_id)?.contractor_code}</span></td><td>${VMP.getProject(a.project_id)?.project_name} ${VMP.getProject(a.project_id)?.status==='Inactive'?'⚠':''}</td><td>${VMP.getUser(a.reporting_manager_id)?.full_name||'⚠ Missing'}</td><td>${VMP.getVendor(a.vendor_id)?.vendor_name}</td><td>${VMP.formatDate(a.start_date)}</td><td>${VMP.formatDate(a.end_date)}</td><td>${a.allocation_percentage}%</td><td>${UI.badge(a.assignment_status)}</td><td><a href="#assignments/transfer?contractor=${a.contractor_id}" class="btn btn-sm btn-primary">Transfer</a></td></tr>`)
     )),
 
   'assignments-transfer': () => {
+    const selId = Router.getQueryParam('contractor');
+    const selContractor = selId ? VMP.getContractor(selId) : null;
+    const selBanner = selContractor
+      ? UI.alert('info', `Transferring: <strong>${selContractor.full_name} (${selContractor.contractor_code})</strong> — selected from the assignments list.`)
+      : UI.alert('warning', 'No contractor selected. Go to Assignments and click <strong>Transfer</strong> on a contractor row to start with context.');
+    const contractorOptions = selContractor
+      ? [{ label: `${selContractor.full_name} (${selContractor.contractor_code})`, selected: true }]
+      : [{ label: 'Amit Joshi (CON-001)', selected: true }];
     const transferForm = UI.formGrid([
-      { label: 'Contractor', type: 'select', options: [{label:'Amit Joshi (CON-001)', selected:true}] },
+      { label: 'Contractor', type: 'select', options: contractorOptions },
       { label: 'Current Project', value: 'PRJ-101 Platform Modernization', disabled: true },
       { label: 'Current Manager', value: 'Vikram Mehta', disabled: true },
       { label: 'New Project', type: 'select', options: VMP_DATA.projects.filter(p=>p.status==='Active').map(p=>({label:p.project_name,selected:p.id==='p3'})) },
@@ -448,8 +505,8 @@ const Screens = {
     ]);
     const steps = ['Initiate Transfer','Select New Project/Manager','Approval','Close Old / Open New','Notify Stakeholders'];
     const panels = [
-      UI.card('Initiate Transfer', UI.formGrid([
-        { label: 'Contractor', type: 'select', options: [{label:'Amit Joshi (CON-001)', selected:true}] },
+      UI.card('Initiate Transfer', selBanner + UI.formGrid([
+        { label: 'Contractor', type: 'select', options: contractorOptions },
         { label: 'Reason', type: 'textarea', value: 'Project reallocation per business need', full: true }
       ]) + '<div class="form-actions"><button class="btn btn-primary">Next</button></div>'),
       UI.card('Select New Project/Manager', transferForm + '<div class="form-actions"><button class="btn btn-secondary">Back</button><button class="btn btn-primary">Submit for Approval</button></div>'),
@@ -465,7 +522,7 @@ const Screens = {
         { time: 'Pending', action: 'Notify Vendor', detail: 'Acme Staffing Solutions' }
       ]))
     ];
-    return UI.processFlow(steps, 1, { panels });
+    return selBanner + UI.processFlow(steps, selContractor ? 0 : 1, { panels });
   },
 
   'rates-register': () => SH.renderRatesRegister(),
@@ -534,33 +591,46 @@ const Screens = {
         ['5', 'Sneha Nair', 'Jun 2–6', '40h', '✓', '✗ Holiday conflict', 'Failed']
       ].map(r => `<tr class="${r[6]==='Failed'?'row-blocked':''}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${UI.badge(r[6])}</td></tr>`)
     );
-    const steps = ['Upload File', 'Parse Hours', 'Send Confirmation Email', 'Contractor Yes/No', 'Finance Batch'];
+    const steps = ['HR Bulk Upload', 'Parse & Validate', 'Supervisor Approves', 'HR Ops Approves', 'Finance Batch'];
     const panels = [
-      UI.card('Upload File', uploadForm),
-      UI.card('Parse Hours', resultsTable + UI.detailRows([{ label: 'Total Rows', value: '24' }, { label: 'Parsed', value: '24' }, { label: 'Failed', value: '0' }])),
-      UI.card('Send Confirmation Email', resultsTable + UI.alert('info', 'Confirmation email sent to each contractor (manager CC\'d) with daily hours and leave/holiday flags.')),
-      UI.card('Contractor Yes/No', resultsTable + UI.alert('warning', '2 rows have leave/holiday flags — visible in confirmation email for manager review.')),
-      UI.card('Finance Batch', UI.alert('success', 'Contractor-confirmed hours will flow into finance payment batches.'))
+      UI.card('HR Bulk Upload (backfill)', UI.alert('info', 'Normal flow: contractors submit their own hours. HR Ops uses bulk upload only to backfill / correct on behalf of contractors.') + uploadForm),
+      UI.card('Parse & Validate', resultsTable + UI.detailRows([{ label: 'Total Rows', value: '24' }, { label: 'Parsed', value: '24' }, { label: 'Failed', value: '0' }])),
+      UI.card('Supervisor Approves', resultsTable + UI.alert('info', 'Each contractor\'s reporting manager approves the hours first.')),
+      UI.card('HR Ops Approves', resultsTable + UI.alert('warning', '2 rows have leave/holiday flags — resolve before HR approval.')),
+      UI.card('Finance Batch', UI.alert('success', 'HR-approved hours will flow into finance payment batches.'))
     ];
-    return SH.workflowBanner('Timesheet Import (V1)', steps, 'Parse Hours',
-      'Bulk upload parses hours and triggers confirmation email per contractor. Manager CC\'d — no manual follow-up.',
+    return SH.workflowBanner('Timesheet Upload (HR Ops)', steps, 'HR Bulk Upload',
+      'HR Ops owns the timesheet process. Flow: Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Batch.',
       panels);
   },
 
   'timesheets-review': () => {
-    const tsTable = UI.table(['Contractor','Period','Submitted','Confirmed','Leave Flag','Holiday Flag','Confirmation','Status'],
-      SH.timesheets().map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${t.approved_hours ? t.approved_hours + 'h' : '—'}</td><td>${t.leave_mismatch?'⚠ Yes':'—'}</td><td>${t.holiday_mismatch?'⚠ Yes':'—'}</td><td>${UI.badge(t.contractor_confirmation_status || t.manager_approval_status)}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`)
+    const all = VMP_DATA.timesheets;
+    const awaitingHr = all.filter(t => t.manager_approval_status === 'Supervisor Approved' && t.hr_approval_status !== 'HR Approved');
+    const hrApproved = all.filter(t => t.hr_approval_status === 'HR Approved' || ['Confirmed', 'In Finance Batch', 'Paid'].includes(t.reconciliation_status));
+    const queueTable = UI.table(['Contractor','Period','Hours','Supervisor','Leave Flag','Holiday Flag','Actions'],
+      awaitingHr.map(t => `<tr class="${t.leave_mismatch || t.holiday_mismatch ? 'row-blocked' : ''}"><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${UI.badge('Supervisor Approved')}</td><td>${t.leave_mismatch?'⚠ Yes':'—'}</td><td>${t.holiday_mismatch?'⚠ Yes':'—'}</td><td><button class="btn btn-sm btn-success" data-action="hr-approve-ts" data-id="${t.id}">HR Approve</button> <button class="btn btn-sm btn-danger" data-action="reject" data-type="Timesheet" data-id="${t.id}">Reject</button></td></tr>`),
+      'No supervisor-approved timesheets awaiting HR approval.'
     );
-    const steps = ['Upload', 'Confirmation Email', 'Contractor Yes/No', 'Finance Review', 'Payment Batch'];
+    const doneTable = UI.table(['Contractor','Period','Hours','Supervisor','HR Ops','Status'],
+      hrApproved.map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.approved_hours || t.submitted_hours}h</td><td>${UI.badge('Supervisor Approved')}</td><td>${UI.badge('HR Approved')}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`),
+      'None HR-approved yet.'
+    );
+    const steps = ['Contractor Submits', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Finance Batch'];
+    const stats = UI.statsGrid([
+      { value: awaitingHr.length, label: 'Awaiting HR Approval', class: 'warning' },
+      { value: hrApproved.length, label: 'HR Approved', class: 'success' },
+      { value: awaitingHr.filter(t => t.leave_mismatch || t.holiday_mismatch).length, label: 'Flagged (resolve first)', class: 'danger' }
+    ]);
     const panels = [
-      UI.card('Upload', UI.alert('info', 'Timesheets uploaded via portal or bulk import.')),
-      UI.card('Confirmation Email', UI.alert('info', 'Contractor receives confirmation email; manager CC\'d with leave/holiday flags.') + tsTable),
-      UI.card('Contractor Yes/No', tsTable),
-      UI.card('Finance Review', tsTable),
-      UI.card('Payment Batch', UI.alert('success', 'Confirmed timesheets included in vendor payment batches.') + tsTable)
+      UI.card('Contractor Submits', UI.alert('info', 'Contractors submit their own hours in the portal — HR Ops no longer uploads on their behalf by default.')),
+      UI.card('Supervisor Approves', UI.alert('info', 'Reporting manager approves first, then it reaches HR Ops.')),
+      UI.card('HR Ops Approves (You own this)', UI.alert('info', 'HR Ops is the process owner and approver for timesheets. You have edit/approve rights here.') + stats + queueTable),
+      UI.card('Finance Reviews', UI.alert('info', 'Finance only does a read-only final check.') + doneTable),
+      UI.card('Finance Batch', UI.alert('success', 'HR-approved hours flow into finance payment batches.') + doneTable)
     ];
-    return SH.workflowBanner('Timesheet to Payment (V1)', steps, 'Finance Review',
-      'Finance reviews contractor-confirmed timesheets. Leave/holiday flags surfaced in confirmation email.',
+    return SH.workflowBanner('Timesheet Review & Approval (HR Ops)', steps, 'HR Ops Approves',
+      'HR Ops owns the timesheet process. Flow: Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Batch.',
       panels);
   },
 
@@ -661,6 +731,15 @@ const Screens = {
 
   'finance-invoice-approval': () => SH.renderInvoiceApproval(),
   'finance-invoice-payment': () => SH.renderInvoicePayment(),
+  'finance-timesheet-review': () => SH.renderFinanceTimesheetReview(),
+
+  // ========== INVOICE MANAGEMENT MODULE ==========
+  'invoices-register': () => SH.renderInvoiceRegister(),
+  'invoices-detail': () => SH.renderInvoiceDetail(),
+  'invoices-batches': () => SH.renderInvoiceBatches(),
+  'invoices-validation': () => SH.renderInvoiceSowValidation(),
+  'invoices-ta-approval': () => SH.renderInvoiceTaApproval(),
+  'invoices-raise': () => SH.renderRaiseInvoice(),
 
   'finance-rate-cards': () => SH.renderRateCardManagement(),
 
@@ -679,7 +758,7 @@ const Screens = {
     ) + UI.alert('info', 'Export available: Vendor Spend Summary, Tax Report, Rate Card vs Actual Cost Variance.')),
 
   // ========== TAQ ORCHESTRATION ==========
-  'taq-mrf': () => SH.renderMrfManagement(),
+  'taq-mfr': () => SH.renderMfrManagement(),
   'taq-job-orders': () => SH.renderTaqJobOrders(),
   'taq-candidate-routing': () => SH.renderTaqCandidateRouting(),
   'taq-pipeline': () => SH.renderTaqPipeline(),
@@ -701,14 +780,14 @@ const Screens = {
     ) : UI.alert('info', 'No pending leave requests'));
   },
 
-  'manager-mrf': () => UI.card('New Manpower Request (MRF)', UI.formGrid([
+  'manager-mfr': () => UI.card('New Manpower Request (MFR)', UI.formGrid([
     { label: 'Role Title', value: 'DevOps Engineer' }, { label: 'Skills Required', value: 'Kubernetes, CI/CD, Terraform' },
     { label: 'Headcount', value: '1' }, { label: 'Contract Duration', value: '12 months' },
     { label: 'Start Date Needed', type: 'date', value: '2025-08-01' }, { label: 'Urgency', type: 'select', options: ['Low','Medium','High'] },
     { label: 'Special Requirements', type: 'textarea', value: 'Must have AWS experience', full: true }
   ]) + '<div class="form-actions"><button class="btn btn-primary">Submit to TAQ</button></div>') +
-  UI.card('My MRF Status', UI.table(['Role','Status','Submitted'],
-    VMP_DATA.mrfs.filter(m => m.requested_by === 'u4').map(m => `<tr><td>${m.role_title}</td><td>${UI.badge(m.status)}</td><td>${VMP.formatDate(m.created_date)}</td></tr>`)
+  UI.card('My MFR Status', UI.table(['Role','Status','Submitted'],
+    VMP_DATA.mfrs.filter(m => m.requested_by === 'u4').map(m => `<tr><td>${m.role_title}</td><td>${UI.badge(m.status)}</td><td>${VMP.formatDate(m.created_date)}</td></tr>`)
   )),
 
   'manager-performance': () => SH.renderQuarterlyRating(),
@@ -728,41 +807,27 @@ const Screens = {
     ]) + UI.alert('warning', 'Thu Jun 5 is Company Foundation Day (Holiday) — 0 hours expected.') +
     '<div class="form-actions"><button class="btn btn-primary">Upload & Submit Hours</button></div>';
 
-    const emailPreview = UI.card('Confirmation Email Preview', `
-      <div style="font-size:.875rem;line-height:1.6;border:1px solid var(--border);border-radius:8px;padding:1rem;background:var(--surface)">
-        <p><strong>To:</strong> amit.joshi@contractor.com<br>
-        <strong>CC:</strong> vikram.mehta@company.com (Reporting Manager)</p>
-        <p><strong>Subject:</strong> Please confirm your timesheet hours — Jun 2 to Jun 6, 2025</p>
-        <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
-        <p>Hi Amit,</p>
-        <p>You submitted <strong>40 hours</strong> for the week of Jun 2 – Jun 6, 2025:</p>
-        <ul style="margin:.5rem 0;padding-left:1.25rem">
-          <li>Mon Jun 2 — 8h</li><li>Tue Jun 3 — 8h</li><li>Wed Jun 4 — 8h</li>
-          <li>Thu Jun 5 — 0h (Holiday: Company Foundation Day)</li><li>Fri Jun 6 — 8h</li>
-        </ul>
-        <p><strong>Did you work for this many hours? Please confirm Yes or No.</strong></p>
-        <p style="font-size:.8rem;color:var(--muted)">Your manager is copied on this email for visibility.</p>
-        <div class="form-actions" style="margin-top:1rem">
-          <button class="btn btn-primary btn-sm">Yes — Confirm Hours</button>
-          <button class="btn btn-secondary btn-sm">No — Reject</button>
-        </div>
-      </div>
-    `);
+    const payStatus = (t) => {
+      if (t.reconciliation_status === 'Paid') return UI.badge('Paid');
+      if (t.reconciliation_status === 'In Finance Batch') return UI.badge('In Payment Batch');
+      if (t.reconciliation_status === 'Confirmed' || t.hr_approval_status === 'HR Approved') return UI.badge('Ready for Batch');
+      return '<span style="color:var(--muted);font-size:.8rem">Not yet</span>';
+    };
+    const history = UI.card('My Timesheet History', UI.table(['Period','Hours','Supervisor','HR Ops','Payment Status'],
+      VMP.getContractorTimesheets('c1').map(t => `<tr><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${UI.badge(t.manager_approval_status === 'Supervisor Approved' || t.manager_approval_status === 'Confirmed' ? 'Supervisor Approved' : t.manager_approval_status || 'Pending')}</td><td>${UI.badge(t.hr_approval_status || (t.reconciliation_status === 'Paid' || t.reconciliation_status === 'In Finance Batch' || t.reconciliation_status === 'Confirmed' ? 'HR Approved' : 'Pending'))}</td><td>${payStatus(t)}</td></tr>`),
+      'No past timesheets yet.'
+    ));
 
-    const history = UI.table(['Period','Hours','Confirmation','Status'],
-      VMP.getContractorTimesheets('c1').map(t => `<tr><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${UI.badge(t.contractor_confirmation_status || t.manager_approval_status)}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`)
-    );
-
-    const steps = ['Upload / Enter Hours', 'Parse & Validate', 'Send Confirmation Email', 'Contractor Yes/No', 'Record & Notify'];
+    const steps = ['Submit Hours', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Payment'];
     const panels = [
-      UI.card('Upload Timesheet — Week of Jun 2, 2025', uploadSection),
-      UI.card('Parse & Validate', uploadSection + UI.alert('info', 'System extracts daily hours from file and cross-checks against holiday calendar and approved leave.')),
-      UI.card('Send Confirmation Email', emailPreview + UI.alert('info', 'Automated email sent to contractor with manager CC. Replaces manual email to manager.')),
-      UI.card('Contractor Yes/No', emailPreview),
-      UI.card('Record & Notify', history + UI.alert('success', 'Confirmed hours recorded for contractor and visible to manager in portal.'))
+      UI.card('Submit Timesheet — Week of Jun 2, 2025', uploadSection),
+      UI.card('Supervisor Approves', UI.alert('info', 'Your reporting manager reviews and approves your hours — a real approval step, not just a CC. You will see the status update here.') + history),
+      UI.card('HR Ops Approves', UI.alert('info', 'After your manager approves, HR Ops (process owner) approves before the hours are payable.') + history),
+      UI.card('Finance Reviews', UI.alert('info', 'Finance does a read-only final check before payment.') + history),
+      UI.card('Payment', history + UI.alert('success', 'Payment status for each submitted period is shown above.'))
     ];
-    return SH.workflowBanner('Timesheet Confirmation (V1)', steps, 'Upload / Enter Hours',
-      'Contractor uploads hours; system sends a confirmation email (manager CC\'d). Contractor confirms Yes or No — no manager follow-up needed.',
+    return SH.workflowBanner('Timesheet Submission', steps, 'Submit Hours',
+      'You submit your own hours. Approval chain: Supervisor → HR Ops → Finance. Track approval and payment status per period below.',
       panels);
   },
 
@@ -779,18 +844,32 @@ const Screens = {
       return item;
     });
     return UI.card('Document Checklist', UI.table(['Document','Status','Actions'],
-      checklist.map(d => `<tr><td>${d.type}</td><td>${UI.badge(d.status)}</td><td><button class="btn btn-sm btn-secondary">${d.action}</button></td></tr>`)
-    ));
+      checklist.map(d => {
+        const verified = d.status === 'Verified';
+        const primary = `<button class="btn btn-sm btn-secondary">${d.action}</button>`;
+        const update = verified ? ` <button class="btn btn-sm btn-primary" data-action="reupload-doc" data-id="${d.type}">Update / Re-upload</button>` : '';
+        return `<tr><td>${d.type}</td><td>${UI.badge(d.status)}</td><td>${primary}${update}</td></tr>`;
+      })
+    ) + UI.alert('info', 'Verified documents can be updated — e.g. if your bank account changes, use Update / Re-upload. The new copy goes back for re-verification.'));
   },
 
-  'contractor-leave': () => UI.card('Request Leave', UI.formGrid([
-    { label: 'Leave Type', type: 'select', options: ['Personal','Sick','Annual'] },
-    { label: 'Start Date', type: 'date', value: '2025-07-01' }, { label: 'End Date', type: 'date', value: '2025-07-02' },
-    { label: 'Note', type: 'textarea', value: 'Personal commitment', full: true }
-  ]) + '<div class="form-actions"><button class="btn btn-primary">Submit Request</button></div>') +
-  UI.card('Leave History', UI.table(['Date','Type','Status'],
-    VMP_DATA.leaveRecords.filter(l=>l.contractor_id==='c1').map(l => `<tr><td>${VMP.formatDate(l.leave_date)}</td><td>${l.leave_type}</td><td>${UI.badge(l.leave_status)}</td></tr>`)
-  )),
+  'contractor-leave': () => {
+    const bal = VMP.getContractorLeaveBalance('c1');
+    const balCard = UI.card('My Leave Balance', UI.statsGrid([
+      { value: bal.annual, label: 'Annual Days Left', class: 'success' },
+      { value: bal.sick, label: 'Sick Days Left' },
+      { value: bal.personal, label: 'Personal Days Left' }
+    ]));
+    return balCard + UI.card('Request Leave', UI.formGrid([
+      { label: 'Leave Type', type: 'select', options: ['Personal','Sick','Annual'] },
+      { label: 'Start Date', type: 'date', value: '2025-07-01' }, { label: 'End Date', type: 'date', value: '2025-07-02' },
+      { label: 'Note', type: 'textarea', value: 'Personal commitment', full: true }
+    ]) + '<div class="form-actions"><button class="btn btn-primary">Submit Request</button></div>') +
+    UI.card('Leave History', UI.table(['Date','Type','Status','Action'],
+      VMP_DATA.leaveRecords.filter(l=>l.contractor_id==='c1').map(l => `<tr><td>${VMP.formatDate(l.leave_date)}</td><td>${l.leave_type}</td><td>${UI.badge(l.leave_status)}</td><td>${l.leave_status === 'Pending' ? `<button class="btn btn-sm btn-danger" data-action="cancel-leave" data-id="${l.id}">Cancel / Withdraw</button>` : '—'}</td></tr>`),
+      'No leave requests yet.'
+    ));
+  },
 
   // ========== VENDOR SIDE MANAGER ==========
   'dashboard-vendor': () => SH.renderVendorDashboard(),
@@ -804,10 +883,7 @@ const Screens = {
   'vendor-reports': () => SH.renderVendorReports(),
 
   // ========== SHARED ==========
-  'shared-documents': () => UI.toolbar(['<input type="search" placeholder="Search documents..." class="search-input">','<select><option>All Types</option></select>']) +
-    UI.card('Document Repository', UI.table(['Entity','Type','Document','Uploaded By','Status','Actions'],
-      VMP_DATA.documents.map(d => `<tr><td>${d.entity_type} ${d.entity_id}</td><td>${d.document_type}</td><td>${d.document_name||'—'}</td><td>${d.uploaded_by||'—'}</td><td>${UI.badge(d.status)}</td><td><button class="btn btn-sm btn-secondary">Download</button></td></tr>`)
-    )),
+  'shared-documents': () => SH.renderDocumentRepository(),
 
   'shared-agreements': () => UI.card('Digital Agreements', UI.table(['Entity','Title','Version','Status','Signed Date','Signed By','Actions'],
     VMP_DATA.agreements.map(a => `<tr><td>${a.entity_type} ${a.entity_id}</td><td>${a.title}</td><td>v${a.version}</td><td>${UI.badge(a.status)}</td><td>${VMP.formatDate(a.signed_date)}</td><td>${a.signed_by.join(', ')||'—'}</td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>`)
@@ -816,16 +892,16 @@ const Screens = {
   'system-diagram': () => `<div style="padding:1rem">${UI.alert('info', 'TAQ is the orchestrator and system admin — not the operational hiring owner. HR Ops schedules interviews, sends offers, and runs onboarding/BGV.')}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem">
     ${['TAQ Orchestrator / System Admin','HR Operations','Finance',"Contractor's Manager",'Vendor Side Manager','Contractor'].map((a,i) =>
       `<div class="card" style="border-top:4px solid ${['#7c3aed','#2563eb','#dc2626','#ea580c','#0891b2','#16a34a'][i]}"><div class="card-body"><strong>${a}</strong><ul style="font-size:.8rem;margin-top:.5rem;padding-left:1.2rem">${{
-        'TAQ Orchestrator / System Admin': ['MRF intake & post job orders to vendors','Route vendor profiles to managers','Monitor end-to-end pipeline','System admin: users, roles, config','Does NOT interview, onboard, or run BGV'],
+        'TAQ Orchestrator / System Admin': ['MFR intake & post job orders to vendors','Route vendor profiles to managers','Monitor end-to-end pipeline','System admin: users, roles, config','Does NOT interview, onboard, or run BGV'],
         'HR Operations': ['Schedule interviews after manager selection','Send offers & contractor onboarding','BGV, documents, assignments','Vendor registration & compliance','Approved hours → Finance'],
         'Finance': ['Rate history','Invoice generation','Payment batches','Dual approval >$10K'],
-        "Contractor's Manager": ['Raise MRF to TAQ','Review forwarded candidate profiles','Select candidates needed','Timesheet approval','Performance ratings'],
+        "Contractor's Manager": ['Raise MFR to TAQ','Review forwarded candidate profiles','Select candidates needed','Timesheet approval','Performance ratings'],
         'Vendor Side Manager': ['Respond to job orders','Shortlist & submit candidates','Onboarding/offboarding coordination','SOW compliance','Approve payments'],
         'Contractor': ['Document submission','Timesheet entry','Leave requests','Portal access']
       }[a].map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`
     ).join('')}
   </div><div class="card" style="margin-top:1rem"><div class="card-header"><h3>Key Flows</h3></div><div class="card-body"><ol style="font-size:.875rem;line-height:2">
-    <li><strong>Hiring Orchestration:</strong> Manager MRF → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding</li>
+    <li><strong>Hiring Orchestration:</strong> Manager MFR → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding</li>
     <li><strong>Hire to Pay:</strong> Active contractor → Rate → Timesheet Confirmation → Finance Batch → Invoice → <strong>Vendor Payment Approval</strong></li>
     <li><strong>Transfer:</strong> Assignment Transfer → Approval → Close Old / Open New → Update Reporting Manager → Clear Anomaly</li>
     <li><strong>Exit:</strong> End Date Trigger → Vendor & HR Exit Checklist → Access Revoke → Final Timesheet → Archive</li>

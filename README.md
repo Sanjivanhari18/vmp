@@ -22,7 +22,7 @@ python3 -m http.server 8080
 | TAQ / System Admin | TAQ Dashboard | Full nav — users, roles, hiring, all modules |
 | HR Operations | HR Dashboard | Vendors, contractors, onboarding, leave, import |
 | Finance | Finance Dashboard | Rates, batches, invoices, reconciliation |
-| Contractor's Manager | Manager Dashboard | Timesheet confirmation view (CC), MRF, performance |
+| Contractor's Manager | Manager Dashboard | Timesheet confirmation view (CC), MFR, performance |
 | Contractor | Contractor Portal | Timesheet upload & confirmation, documents, leave |
 
 Use the **View as** dropdown in the top bar to instantly switch between all five actor portals.
@@ -37,7 +37,7 @@ Use the **View as** dropdown in the top bar to instantly switch between all five
 4. Manager → Timesheet Confirmation (`#manager/timesheets`) — view recorded status (read-only)
 5. Finance → Finance Batches (`#finance/batches`) — confirmed hours in payment batch
 
-> Talent Acquisition (MRF, job orders, candidate routing) is out of scope for V1 demos.
+> Talent Acquisition (MFR, job orders, candidate routing) is out of scope for V1 demos.
 
 ### Journey B — Assignment Transfer
 1. Assignments → Transfer (`#assignments/transfer`)

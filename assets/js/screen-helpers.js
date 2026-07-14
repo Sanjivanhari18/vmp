@@ -49,8 +49,8 @@ const SH = {
       },
       taq: {
         title: 'TAQ Orchestrator / System Admin',
-        desc: 'Orchestrates hiring: intake MRFs, post job positions to vendors, route vendor-shortlisted profiles to managers, monitor pipeline status. Does not schedule interviews, onboard candidates, or run BGV.',
-        workflow: 'MRF → Post to Vendor → Vendor Shortlist → Route to Manager → HR: Interview → HR: Onboarding'
+        desc: 'Orchestrates hiring: intake MFRs, post job positions to vendors, route vendor-shortlisted profiles to managers, monitor pipeline status. Does not schedule interviews, onboard candidates, or run BGV.',
+        workflow: 'MFR → Post to Vendor → Vendor Shortlist → Route to Manager → HR: Interview → HR: Onboarding'
       },
       hr: {
         title: 'HR Operations',
@@ -58,14 +58,14 @@ const SH = {
         workflow: 'Manager Selection → HR Schedules Interview → Offer → Onboarding → BGV → Assignment → Active'
       },
       manager: {
-        title: "Contractor's Manager",
-        desc: 'View team timesheet confirmations (CC\'d on email), submit MRFs, and rate performance. V1: no in-app timesheet approve/reject — contractor confirms via email.',
-        workflow: 'Timesheet Confirmation (CC) → View Recorded Status → Finance Payment'
+        title: "Contractor's Manager (Supervisor)",
+        desc: 'Approve your team\'s submitted timesheets (first approval step), submit MFRs, and rate performance. Timesheets you approve move to HR Ops, then Finance.',
+        workflow: 'Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Batch'
       },
       contractor: {
         title: 'Contractor Portal',
-        desc: 'Upload timesheet file or enter hours, confirm via email (manager CC\'d), upload documents, request leave.',
-        workflow: 'Upload Hours → Confirmation Email → Yes/No → Recorded → Finance Payment'
+        desc: 'Submit your own hours, track approval and payment status per period, upload/update documents, and request leave (with balance shown).',
+        workflow: 'Submit Hours → Supervisor Approves → HR Ops Approves → Finance Reviews → Payment'
       },
       vendor: {
         title: 'Vendor Side Manager — Acme Staffing Solutions',
@@ -84,18 +84,18 @@ const SH = {
     return UI.processFlow(steps, idx, { note, panels: resolvedPanels });
   },
 
-  _mrfTable() {
-    return UI.table(['MRF ID','Role','Requested By','Headcount','Urgency','Status','Job Order','Date','Actions'],
-      VMP_DATA.mrfs.map(m => `<tr><td>${m.id}</td><td>${m.role_title}</td><td>${VMP.getUser(m.requested_by)?.full_name}</td><td>${m.headcount}</td><td>${UI.badge(m.urgency)}</td><td>${UI.badge(m.status)}</td><td>${m.open_position_id||'—'}</td><td>${VMP.formatDate(m.created_date)}</td><td>${m.status==='Raised'?'<button class="btn btn-sm btn-primary">Convert to Job Order</button>':'—'}</td></tr>`)
+  _mfrTable() {
+    return UI.table(['MFR ID','Role','Requested By','Headcount','Urgency','Status','Job Order','Date','Actions'],
+      VMP_DATA.mfrs.map(m => `<tr><td>${m.id}</td><td>${m.role_title}</td><td>${VMP.getUser(m.requested_by)?.full_name}</td><td>${m.headcount}</td><td>${UI.badge(m.urgency)}</td><td>${UI.badge(m.status)}</td><td>${m.open_position_id||'—'}</td><td>${VMP.formatDate(m.created_date)}</td><td>${m.status==='Raised'?'<button class="btn btn-sm btn-primary">Convert to Job Order</button>':'—'}</td></tr>`)
     );
   },
 
-  renderMrfManagement() {
-    const steps = ['MRF Raised', 'TAQ Review', 'Post to Vendor', 'Vendor Shortlist', 'Route to Manager', 'HR Takes Over'];
+  renderMfrManagement() {
+    const steps = ['MFR Raised', 'TAQ Review', 'Post to Vendor', 'Vendor Shortlist', 'Route to Manager', 'HR Takes Over'];
     const note = 'TAQ orchestrates only — does not interview or onboard. After routing profiles to the manager, HR Ops schedules interviews and runs onboarding/BGV.';
     const panels = [
-      UI.card('MRF Raised', UI.alert('info', 'Managers submit manpower requests with role, skills, and headcount.') + SH._mrfTable()),
-      UI.card('TAQ Review', UI.alert('info', 'TAQ validates budget, skills match, and project alignment before posting to vendors.') + SH._mrfTable()),
+      UI.card('MFR Raised', UI.alert('info', 'Managers submit manpower requests with role, skills, and headcount.') + SH._mfrTable()),
+      UI.card('TAQ Review', UI.alert('info', 'TAQ validates budget, skills match, and project alignment before posting to vendors.') + SH._mfrTable()),
       UI.card('Post to Vendor', UI.alert('info', 'TAQ creates open position and issues job orders to approved vendors.') +
         '<a href="#taq/job-orders" class="btn btn-sm btn-primary">Post Positions to Vendors</a>' +
         UI.table(['Title','Project','Skills','Status'],
@@ -122,8 +122,8 @@ const SH = {
   renderTaqJobOrders() {
     const orders = VMP_DATA.jobOrders;
     const openPos = VMP_DATA.openPositions.filter(o => o.status !== 'Filled');
-    return SH.workflowBanner('Post Position to Vendor', ['MRF Approved', 'Create Position', 'Select Vendors', 'Issue Job Order', 'Vendor Responds'],
-      'Issue Job Order', 'When MRF is approved, TAQ posts the job position to selected vendors. Vendors shortlist candidates from their own company.') +
+    return SH.workflowBanner('Post Position to Vendor', ['MFR Approved', 'Create Position', 'Select Vendors', 'Issue Job Order', 'Vendor Responds'],
+      'Issue Job Order', 'When MFR is approved, TAQ posts the job position to selected vendors. Vendors shortlist candidates from their own company.') +
     UI.statsGrid([
       { value: orders.length, label: 'Active Job Orders' },
       { value: orders.filter(j => j.response_status === 'Pending Response').length, label: 'Awaiting Vendor', class: 'warning' },
@@ -155,8 +155,8 @@ const SH = {
     ]) + UI.card('Vendor Submissions — Route to Manager', submitted.length ? UI.table(['Candidate', 'Vendor', 'Job Order', 'Skills Match', 'AI Score', 'Assign Manager', 'Actions'],
       submitted.map(c => {
         const op = VMP_DATA.openPositions.find(o => o.id === VMP_DATA.jobOrders.find(j => j.id === c.job_order_id)?.open_position_id);
-        const mrf = VMP_DATA.mrfs.find(m => m.open_position_id === op?.id);
-        const managerId = mrf?.requested_by || 'u4';
+        const mfr = VMP_DATA.mfrs.find(m => m.open_position_id === op?.id);
+        const managerId = mfr?.requested_by || 'u4';
         return `<tr>
           <td><strong>${c.name}</strong><br><span style="font-size:.75rem;color:var(--muted)">${c.email}</span></td>
           <td>${VMP.getVendor(c.vendor_id)?.vendor_name}</td>
@@ -187,7 +187,7 @@ const SH = {
         }))
       })))),
       UI.card('Role Boundaries', UI.detailRows([
-        { label: 'TAQ Orchestrator', value: 'MRF intake, post to vendors, route profiles to manager, monitor pipeline' },
+        { label: 'TAQ Orchestrator', value: 'MFR intake, post to vendors, route profiles to manager, monitor pipeline' },
         { label: 'Vendor', value: 'Shortlist candidates from own company, submit profiles' },
         { label: "Contractor's Manager", value: 'Review forwarded profiles, select candidates needed' },
         { label: 'HR Operations', value: 'Schedule interviews, send offers, onboarding, BGV, assignments' },
@@ -219,6 +219,7 @@ const SH = {
             ${c.stage === 'Manager Selected' ? '<a href="#hr/interviews" class="btn btn-sm btn-primary">Schedule Interview</a>' : ''}
             ${c.stage === 'Interview Complete' || c.stage === 'Interview Scheduled' ? '<button class="btn btn-sm btn-primary">Send Offer</button>' : ''}
             ${c.stage === 'Offer Sent' ? '<a href="#contractors/onboarding" class="btn btn-sm btn-secondary">Start Onboarding</a>' : ''}
+            ${c.stage !== 'Onboarded' ? `<button class="btn btn-sm btn-danger" data-action="reject-candidate" data-id="${c.id}">Reject / Withdraw</button>` : ''}
           </td>
         </tr>`;
       })
@@ -288,6 +289,97 @@ const SH = {
         <td>${c.stage === 'Manager Selected' ? 'HR schedules interview' : c.stage === 'Forwarded to Manager' ? 'Awaiting your review' : '—'}</td>
       </tr>`)
     )) + UI.alert('info', 'You do not schedule interviews — once you select a candidate, HR Ops will coordinate scheduling.');
+  },
+
+  /** Dashboard widget: contracts & documents expiring in 30 / 60 / 90 days */
+  expiringSoonWidget() {
+    const items = VMP.getExpiringItems(90);
+    const in30 = items.filter(i => i.days <= 30).length;
+    const in60 = items.filter(i => i.days > 30 && i.days <= 60).length;
+    const in90 = items.filter(i => i.days > 60 && i.days <= 90).length;
+    const summary = `<div style="display:flex;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap">
+      <span class="chip" style="background:#fee2e2">Next 30 days: <strong>${in30}</strong></span>
+      <span class="chip" style="background:#fef3c7">31–60 days: <strong>${in60}</strong></span>
+      <span class="chip" style="background:#eff6ff">61–90 days: <strong>${in90}</strong></span>
+    </div>`;
+    const table = items.length ? UI.table(['Item', 'Type', 'Reference', 'Expiry', 'Window'],
+      items.map(i => `<tr data-nav="${i.nav}"><td>${i.name}</td><td>${i.type}</td><td>${i.ref || '—'}</td><td>${VMP.formatDate(i.expiry)}</td><td>${UI.badge(i.days < 0 ? 'Expired' : VMP.expiryBucket(i.days))}</td></tr>`)
+    ) : UI.alert('success', 'Nothing expiring in the next 90 days.');
+    return UI.card('Expiring Soon — Contracts & Documents', summary + table);
+  },
+
+  /** Document Repository — every actor has this page. Grouped by category, then by date. */
+  renderDocumentRepository() {
+    const role = VMP.currentRole;
+    const roleLabel = NAV_CONFIG[role]?.label || role;
+    const all = VMP.getRepositoryDocuments(role);
+    const categories = VMP.DOC_CATEGORIES;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const addForm = UI.card('Add Document', UI.alert('info', 'Documents submitted anywhere in the system land in this repository. You can also add one here at any time.') + UI.formGrid([
+      { label: 'Category', type: 'select', options: categories.map(c => ({ label: c })) },
+      { label: 'Document Type', type: 'select', options: ['MSA', 'SOW', 'SLA', 'NDA', 'Insurance', 'Company Registration', 'ID Proof', 'Bank Details', 'Tax Forms', 'BGV Consent', 'Other'] },
+      { label: 'Document Name', value: 'New-Document.pdf' },
+      { label: 'Related To', type: 'select', options: role === 'contractor'
+        ? [{ label: 'Me (Contractor)' }]
+        : role === 'vendor'
+          ? [{ label: 'My Vendor Account' }]
+          : [{ label: 'Acme Staffing (Vendor)' }, { label: 'Amit Joshi (Contractor)' }, { label: 'TechTalent (Vendor)' }] }
+    ]) + '<div class="form-actions"><button class="btn btn-primary" data-action="repo-add-doc">Add to Repository</button></div>');
+
+    const stats = UI.statsGrid(categories.map(cat => {
+      const count = all.filter(d => (d.category || VMP.docCategory(d.document_type)) === cat).length;
+      return { value: count, label: cat, class: count ? '' : 'muted' };
+    }));
+
+    const tabDefs = categories.map(cat => {
+      const docs = all
+        .filter(d => (d.category || VMP.docCategory(d.document_type)) === cat)
+        .sort((a, b) => String(b.updated_at || b.created_at).localeCompare(String(a.updated_at || a.created_at)));
+      const byDate = {};
+      docs.forEach(d => {
+        const key = d.updated_at || d.created_at || 'Unknown';
+        if (!byDate[key]) byDate[key] = [];
+        byDate[key].push(d);
+      });
+      const dateKeys = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+      let body;
+      if (!docs.length) {
+        body = UI.alert('info', `No ${cat} documents in your repository yet. Add one above — at least one sample will appear for the mock.`);
+      } else {
+        body = dateKeys.map(date => {
+          const rows = byDate[date];
+          return `<div style="margin-bottom:1.25rem">
+            <div style="font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">
+              ${date === today ? 'Updated today' : 'Updated / created · ' + VMP.formatDate(date)}
+              <span style="font-weight:500;margin-left:.35rem">(${rows.length})</span>
+            </div>
+            ${UI.table(['Document', 'Type', 'Entity', 'Created', 'Updated', 'Status', 'Actions'],
+              rows.map(d => {
+                const needsFollowUp = d.status === 'Pending Upload' || d.status === 'Rejected';
+                const actions = needsFollowUp
+                  ? `<button class="btn btn-sm btn-primary" data-action="send-doc-reminder" data-id="${d.id}">Send Reminder</button>`
+                  : `<button class="btn btn-sm btn-secondary" data-action="open-doc" data-id="${d.document_name || d.id}">Open</button>
+                     <button class="btn btn-sm btn-secondary">Download</button>`;
+                return `<tr>
+                  <td><strong>${d.document_name || '— (not uploaded)'}</strong></td>
+                  <td>${d.document_type}</td>
+                  <td>${VMP.entityLabelForDoc(d)}</td>
+                  <td>${VMP.formatDate(d.created_at)}</td>
+                  <td>${VMP.formatDate(d.updated_at)}</td>
+                  <td>${UI.badge(d.status)}</td>
+                  <td>${actions}</td>
+                </tr>`;
+              })
+            )}
+          </div>`;
+        }).join('');
+      }
+      return { label: `${cat} (${docs.length})`, content: body };
+    });
+
+    return UI.alert('info', `<strong>${roleLabel} — Document Repository.</strong> Every submitted document is filed here, segregated by type (Compliance, SOW, SLA, NDA, MSA) and then by the date it was created or last updated.`) +
+      stats + addForm + UI.tabs(tabDefs);
   },
 
   actorBanner() {
@@ -511,63 +603,49 @@ const SH = {
     return SH.workflowBanner('Invoice to Payment', steps, current, note, panels);
   },
 
-  // ---- Manager: Timesheet confirmation view (V1 — read-only, manager CC'd on email) ----
+  // ---- Supervisor (Manager): first approval step in the timesheet flow ----
   renderManagerTimesheets() {
-    const awaiting = SH.timesheets().filter(t => t.contractor_confirmation_status === 'Pending');
-    const confirmed = SH.timesheets().filter(t => t.contractor_confirmation_status === 'Confirmed').slice(0, 5);
-    const rejected = SH.timesheets().filter(t => t.contractor_confirmation_status === 'Rejected');
+    const all = SH.timesheets();
+    const awaiting = all.filter(t => !['Supervisor Approved', 'Confirmed', 'In Finance Batch', 'Paid', 'Rejected'].includes(t.manager_approval_status) && t.reconciliation_status !== 'Paid' && t.reconciliation_status !== 'In Finance Batch');
+    const approved = all.filter(t => t.manager_approval_status === 'Supervisor Approved' || t.manager_approval_status === 'Confirmed' || ['In Finance Batch', 'Paid', 'Confirmed'].includes(t.reconciliation_status));
 
-    const queue = UI.table(['Contractor', 'Week', 'Submitted', 'Leave Flag', 'Holiday Flag', 'Email Sent', 'Confirmation', 'Manager View'],
-      [...awaiting, ...confirmed.slice(0, 2), ...rejected].map(t => {
+    const queueTable = UI.table(['Contractor', 'Week', 'Submitted', 'Leave Flag', 'Holiday Flag', 'Downstream', 'Actions'],
+      awaiting.map(t => {
         const blocked = t.leave_mismatch || t.holiday_mismatch;
         return `<tr class="${blocked ? 'row-blocked' : ''}">
           <td>${VMP.getContractor(t.contractor_id)?.full_name}</td>
           <td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td>
           <td>${t.submitted_hours}h</td>
-          <td>${t.leave_mismatch ? '⚠ Leave on file — hours submitted' : '—'}</td>
-          <td>${t.holiday_mismatch ? '⚠ Holiday — non-zero hours' : '—'}</td>
-          <td>${t.confirmation_email_sent_at ? VMP.formatDate(t.confirmation_email_sent_at.split(' ')[0]) : '—'}</td>
-          <td>${UI.badge(t.contractor_confirmation_status || t.manager_approval_status)}</td>
-          <td><span style="font-size:.75rem;color:var(--muted)">CC'd on email — read-only</span></td>
+          <td>${t.leave_mismatch ? '⚠ Leave on file' : '—'}</td>
+          <td>${t.holiday_mismatch ? '⚠ Holiday' : '—'}</td>
+          <td><span style="font-size:.75rem;color:var(--muted)">Then HR Ops → Finance</span></td>
+          <td><button class="btn btn-sm btn-success" data-action="supervisor-approve-ts" data-id="${t.id}">Approve</button> <button class="btn btn-sm btn-danger" data-action="reject" data-type="Timesheet" data-id="${t.id}">Reject</button></td>
         </tr>`;
       }),
-      'No timesheets in confirmation flow.'
+      'No timesheets awaiting your approval.'
     );
 
-    const detail = (() => {
-      const focus = awaiting.find(t => t.leave_mismatch || t.holiday_mismatch) || awaiting[0] || confirmed[0];
-      if (!focus) return '';
-      const c = VMP.getContractor(focus.contractor_id);
-      const days = focus.daily_hours || [{ day: 'Mon', date: 'Jun 2', hours: 8 }, { day: 'Tue', date: 'Jun 3', hours: 8 }, { day: 'Wed', date: 'Jun 4', hours: 8 }, { day: 'Thu', date: 'Jun 5', hours: focus.holiday_mismatch ? 8 : 0, flag: focus.holiday_mismatch ? 'Holiday' : null }, { day: 'Fri', date: 'Jun 6', hours: 8 }];
-      return UI.card(`Timesheet Detail — ${c?.full_name}`, UI.table(['Day', 'Date', 'Hours', 'Flag'],
-        days.map(d => `<tr class="${d.flag ? 'row-blocked' : ''}"><td>${d.day}</td><td>${d.date}</td><td>${d.hours}h</td><td>${d.flag || '—'}</td></tr>`)
-      ) + UI.alert('info', 'V1: Manager receives CC on confirmation email. Leave/holiday flags are surfaced automatically — no manual calendar check or contractor follow-up required.') +
-      (focus.leave_mismatch ? UI.alert('warning', 'Leave record found — contractor submitted billable hours on a leave day. Visible in CC email; contractor may reject on confirmation.') : '') +
-      (focus.holiday_mismatch ? UI.alert('warning', 'Company holiday detected with non-zero hours. Flag included in confirmation email.') : ''));
-    })();
+    const approvedTable = UI.table(['Contractor', 'Week', 'Hours', 'Your Approval', 'HR Ops', 'Status'],
+      approved.map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.approved_hours || t.submitted_hours}h</td><td>${UI.badge('Supervisor Approved')}</td><td>${UI.badge(t.hr_approval_status || (['In Finance Batch', 'Paid', 'Confirmed'].includes(t.reconciliation_status) ? 'HR Approved' : 'Pending'))}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`),
+      'None approved yet.'
+    );
 
-    const steps = ['Contractor Upload', 'Confirmation Email (CC Manager)', 'Contractor Yes/No', 'Recorded in System', 'Finance Batch'];
+    const steps = ['Contractor Submits', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Finance Batch'];
     const panels = [
-      UI.card('Contractor Upload', UI.alert('info', 'Contractors upload a timesheet file or enter hours in the portal.') +
-        UI.table(['Contractor', 'Week', 'Submitted', 'Status'],
-          SH.timesheets().slice(0, 5).map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${UI.badge(t.contractor_confirmation_status || t.manager_approval_status)}</td></tr>`)
-        )),
-      UI.card('Confirmation Email (CC Manager)', UI.alert('info', 'System emails contractor: "Did you work for this many hours?" Manager is CC\'d with full hour breakdown and leave/holiday flags.') + detail),
-      UI.card('Contractor Yes/No', UI.statsGrid([
-        { value: awaiting.length, label: 'Awaiting Confirmation', class: 'warning' },
-        { value: confirmed.length, label: 'Confirmed', class: 'success' },
-        { value: rejected.length, label: 'Rejected', class: 'danger' },
-        { value: awaiting.filter(t => t.leave_mismatch || t.holiday_mismatch).length, label: 'Flagged in Email', class: 'warning' }
-      ]) + UI.card('Team Timesheet Status', queue)),
-      UI.card('Recorded in System', queue + detail),
-      UI.card('Finance Batch', UI.alert('success', 'Contractor-confirmed hours flow into finance payment batches.') +
-        UI.table(['Contractor', 'Week', 'Hours', 'Status'],
-          confirmed.filter(t => t.approved_hours).map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.approved_hours}h</td><td>${UI.badge('Ready for Batch')}</td></tr>`)
-        ))
+      UI.card('Contractor Submits', UI.alert('info', 'Contractors submit their own hours in the portal.') +
+        UI.table(['Contractor', 'Week', 'Submitted', 'Status'], all.slice(0, 5).map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.submitted_hours}h</td><td>${UI.badge(t.manager_approval_status)}</td></tr>`))),
+      UI.card('Supervisor Approves (You)', UI.statsGrid([
+        { value: awaiting.length, label: 'Awaiting Your Approval', class: 'warning' },
+        { value: approved.length, label: 'Approved', class: 'success' },
+        { value: awaiting.filter(t => t.leave_mismatch || t.holiday_mismatch).length, label: 'Flagged (resolve first)', class: 'danger' }
+      ]) + UI.alert('info', 'As reporting manager you confirm the hours are correct before they move to HR Ops. This is a real approval step — not just a CC.') + queueTable),
+      UI.card('HR Ops Approves', UI.alert('info', 'After your approval, HR Ops (the process owner) approves before Finance.') + approvedTable),
+      UI.card('Finance Reviews', UI.alert('info', 'Finance performs a read-only final check.') + approvedTable),
+      UI.card('Finance Batch', UI.alert('success', 'Approved hours flow into finance payment batches.') + approvedTable)
     ];
 
-    return SH.workflowBanner('Timesheet Confirmation (V1)', steps, 'Contractor Yes/No',
-      'V1: Manager is CC\'d on confirmation email for visibility. No in-app approve/reject — contractor confirms Yes or No.',
+    return SH.workflowBanner('Timesheet Approval', steps, 'Supervisor Approves',
+      'New flow: Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Finance Batch. You are the first approver.',
       panels);
   },
 
@@ -607,9 +685,17 @@ const SH = {
       UI.card('Active', kanban + UI.alert('success', 'Contractor activated and assignment is live.'))
     ];
 
+    const activeOnboarding = VMP_DATA.contractors.filter(c => c.status === 'Onboarding' || (c.onboarding_stage !== 'Active' && c.onboarding_stage !== 'Archived'));
+    const listView = UI.card('All Active Onboardings — List View', UI.table(['Contractor', 'Vendor', 'Current Step', 'BGV', 'Blocked On', 'Action'],
+      activeOnboarding.map(c => {
+        const blocked = c.bgv_status !== 'Cleared' ? 'BGV ' + c.bgv_status : (!VMP.getActiveRate(c.id) ? 'Rate not approved' : 'Awaiting activation');
+        return `<tr data-nav="contractors/profile?id=${c.id}"><td>${c.full_name}</td><td>${VMP.getVendor(c.vendor_id)?.vendor_name}</td><td>${UI.badge(c.onboarding_stage)}</td><td>${UI.badge(c.bgv_status)}</td><td><span style="color:#dc2626">${blocked}</span></td><td><a href="#contractors/profile?id=${c.id}" class="btn btn-sm btn-secondary">Open</a></td></tr>`;
+      }),
+      'No active onboardings.'
+    ));
     return SH.workflowBanner('Contractor Onboarding', steps, 'Docs Submitted',
       'Vendor must be approved before onboarding. BGV must clear before contractor activation. Rate must be approved by Finance.',
-      panels);
+      panels) + listView;
   },
 
   // ---- Approval detail ----
@@ -649,7 +735,9 @@ const SH = {
       { label: 'Priority', value: UI.badge(ap.priority) }, { label: 'Status', value: UI.badge(ap.status) },
       { label: 'Approver Role', value: ap.approver_role }
     ]) + entityDetail +
-    (ap.status === 'Pending' ? '<div class="form-actions" style="margin-top:1rem">' + UI.approveRejectButtons(ap.entity_type, ap.entity_id) + '</div>' : UI.alert('success', 'This request has been ' + ap.status.toLowerCase() + '.')));
+    (ap.status === 'Pending'
+      ? '<div class="form-group full" style="margin-top:1rem"><label>Decision note (required on reject, optional on approve)</label><textarea rows="2" placeholder="Add a note explaining your decision..."></textarea></div><div class="form-actions">' + UI.approveRejectButtons(ap.entity_type, ap.entity_id) + '</div>'
+      : UI.alert(ap.status === 'Rejected' ? 'danger' : 'success', 'This request has been ' + ap.status.toLowerCase() + '.' + (ap.rejection_note ? ' Note: "' + ap.rejection_note + '"' : ''))));
 
     const steps = ['Submitted', 'HR Review', 'Finance Review', 'Approved / Rejected'];
     const current = ap.current_stage.includes('Finance') ? 'Finance Review' : ap.current_stage.includes('HR') ? 'HR Review' : 'Submitted';
@@ -795,7 +883,7 @@ const SH = {
     const vid = SH.vendorId();
     const orders = VMP.getVendorJobOrders(vid);
     return SH.workflowBanner('TA Demand → Vendor Response', ['TAQ Posts Position', 'Job Order Issued', 'Vendor Shortlists', 'TAQ Routes to Manager', 'HR Schedules Interview'],
-      'Job Order Issued', 'TAQ posts approved MRF as job order to vendor. Vendor shortlists candidates from their bench — TAQ routes profiles to manager; HR handles interviews.') +
+      'Job Order Issued', 'TAQ posts approved MFR as job order to vendor. Vendor shortlists candidates from their bench — TAQ routes profiles to manager; HR handles interviews.') +
     UI.statsGrid([
       { value: orders.filter(j => j.response_status === 'Pending Response').length, label: 'Awaiting Response', class: 'warning' },
       { value: orders.filter(j => j.response_status === 'In Progress').length, label: 'In Progress' },
@@ -828,7 +916,14 @@ const SH = {
     const op = VMP_DATA.openPositions.find(o => o.id === jo?.open_position_id);
     const mine = VMP.getVendorCandidates(vid);
 
-    const submitForm = UI.card('Submit Candidate Profile', UI.formGrid([
+    const requested = op?.no_of_positions || 0;
+    const submittedForJob = mine.filter(c => c.job_order_id === jobId).length;
+    const overHeadcount = requested > 0 && submittedForJob >= requested;
+    const headcountWarning = overHeadcount
+      ? UI.alert('warning', `⚠ You have already submitted ${submittedForJob} candidate(s) for this job order, which requested only ${requested}. Submitting more exceeds the requested headcount — confirm with TAQ before proceeding.`)
+      : UI.alert('info', `This job order requested ${requested} position(s). You have submitted ${submittedForJob} so far.`);
+
+    const submitForm = UI.card('Submit Candidate Profile', headcountWarning + UI.formGrid([
       { label: 'Job Order', value: jobId + ' — ' + (op?.position_title || 'Open Role'), disabled: true },
       { label: 'Candidate Name', value: '' },
       { label: 'Email', value: '' },
@@ -836,8 +931,9 @@ const SH = {
       { label: 'Skills Match', value: op?.skill_set || '' },
       { label: 'Experience (years)', value: '5' },
       { label: 'Available From', type: 'date', value: '2025-07-15' },
+      { label: 'Resume / CV (PDF/DOCX)', type: 'file', value: 'Attach resume', full: true },
       { label: 'Notes', type: 'textarea', value: 'Strong match for role requirements. Available for interview next week.', full: true }
-    ]) + '<div class="form-actions"><button class="btn btn-primary">Submit to TAQ for Routing</button></div>');
+    ]) + `<div class="form-actions"><button class="btn btn-primary">Submit to TAQ for Routing</button></div>`);
 
     return SH.workflowBanner('Candidate Submission', ['Shortlist from Bench', 'Submit to TAQ', 'TAQ Routes to Manager', 'Manager Selects', 'HR Schedules Interview'],
       'Shortlist from Bench', 'Submit shortlisted profiles to TAQ. TAQ routes to the hiring manager — you do not schedule interviews directly.') +
@@ -861,7 +957,7 @@ const SH = {
           <td><strong>${c.full_name}</strong></td>
           <td>${a ? VMP.getProject(a.project_id)?.project_code : '—'}</td>
           <td>${a ? VMP.getUser(a.reporting_manager_id)?.full_name || '⚠ Missing' : '—'}</td>
-          <td>${VMP.formatDate(c.exit_date) || '—'}${c.exit_date ? ' <span style="font-size:.7rem;color:var(--muted)">track</span>' : ''}</td>
+          <td>${VMP.formatDate(c.exit_date || c.contract_end_date) || '—'}${(c.exit_date || c.contract_end_date) ? ' <button class="btn btn-sm btn-secondary" data-action="track-enddate" data-id="' + c.id + '">Track</button>' : ''}</td>
           <td>${UI.badge(c.bgv_status)}</td>
           <td>${UI.badge(c.status)}</td>
           <td><a href="#contractors/profile?id=${c.id}" class="btn btn-sm btn-secondary">View</a></td>
@@ -893,20 +989,31 @@ const SH = {
     const vid = SH.vendorId();
     const records = VMP.getVendorSowCompliance(vid);
     return SH.workflowBanner('SOW Compliance', ['SOW Signed', 'Active Delivery', 'Manager Review', 'Compliance Check', 'Renewal / Exit'],
-      'Active Delivery', 'Vendor ensures contractor deliverables match signed SOW. Manager provides feedback; vendor tracks compliance status.') +
-    UI.card('SOW Compliance & Deliverables', UI.table(['Contractor', 'Project', 'SOW Document', 'Deliverables', 'Compliance', 'End Date', 'Manager Feedback', 'Last Review'],
-      records.map(sc => `<tr data-nav="contractors/profile?id=${sc.contractor_id}">
-        <td>${VMP.getContractor(sc.contractor_id)?.full_name}</td>
+      'Renewal / Exit', 'Vendor ensures contractor deliverables match signed SOW. Start a renewal or exit directly from the Actions column when a SOW is nearing its end date.') +
+    UI.alert('info', 'End dates below are pulled from each contractor\'s signed contract record — the same source as the SOW documents table, so both always agree.') +
+    UI.card('SOW Compliance & Deliverables', UI.table(['Contractor', 'Project', 'SOW Document', 'Deliverables', 'Compliance', 'End Date', 'Manager Feedback', 'Actions'],
+      records.map(sc => {
+        const c = VMP.getContractor(sc.contractor_id);
+        const endDate = c?.contract_end_date || sc.end_date;
+        const days = VMP.daysUntil(endDate);
+        const bucket = (days !== null && days <= 90) ? VMP.expiryBucket(days) : null;
+        return `<tr>
+        <td>${c?.full_name}</td>
         <td>${VMP.getProject(sc.project_id)?.project_code}</td>
-        <td>${sc.sow_document}</td>
+        <td><span class="entity-link" data-action="open-doc" data-id="${sc.sow_document}">${sc.sow_document}</span></td>
         <td>${UI.badge(sc.deliverables_status)}</td>
         <td>${UI.badge(sc.compliance_status)}</td>
-        <td>${VMP.formatDate(sc.end_date) || '—'}</td>
-        <td style="font-size:.8rem;max-width:200px">${sc.manager_feedback}</td>
-        <td>${VMP.formatDate(sc.last_review)}</td>
-      </tr>`)
-    )) + UI.card('Vendor SOW Documents', UI.table(['Type', 'Document', 'Expiry', 'Status'],
-      VMP.getVendorDocuments(vid).map(d => `<tr><td>${d.document_type}</td><td>${d.document_name}</td><td>${VMP.formatDate(d.expiry_date)}</td><td>${UI.badge(d.verification_status)}</td></tr>`)
+        <td>${VMP.formatDate(endDate) || '—'}${bucket ? ' ' + UI.badge(bucket) : ''}</td>
+        <td style="font-size:.8rem;max-width:180px">${sc.manager_feedback}</td>
+        <td><button class="btn btn-sm btn-primary" data-action="renew-sow" data-id="${sc.contractor_id}">Renew</button> <button class="btn btn-sm btn-secondary" data-action="start-exit-sow" data-id="${sc.contractor_id}">Start Exit</button></td>
+      </tr>`;
+      })
+    )) + UI.card('Vendor SOW Documents', UI.table(['Type', 'Document', 'Expiry', 'Renewal Due', 'Status', 'Actions'],
+      VMP.getVendorDocuments(vid).map(d => {
+        const days = VMP.daysUntil(d.expiry_date);
+        const bucket = (days !== null && days <= 90) ? VMP.expiryBucket(days) : null;
+        return `<tr><td>${d.document_type}</td><td><span class="entity-link" data-action="open-doc" data-id="${d.document_name}">${d.document_name}</span></td><td>${VMP.formatDate(d.expiry_date)}${bucket ? ' ' + UI.badge(bucket) : ''}</td><td>${VMP.formatDate(d.renewal_date) || '—'}</td><td>${UI.badge(d.verification_status)}</td><td><button class="btn btn-sm btn-primary" data-action="renew-sow" data-id="${d.id}">Renew</button></td></tr>`;
+      })
     ));
   },
 
@@ -961,19 +1068,24 @@ const SH = {
     const vid = SH.vendorId();
     const contractors = VMP.getVendorContractors(vid).filter(c => c.status === 'Active');
     const monthly = contractors.reduce((s, c) => s + (VMP.getActiveRate(c.id)?.monthly_rate || 0), 0);
+    const dateRange = `<div class="form-grid" style="margin-bottom:1rem">
+      <div class="form-group"><label>Period — From</label><input type="date" value="2025-05-01"></div>
+      <div class="form-group"><label>Period — To</label><input type="date" value="2025-05-31"></div>
+      <div class="form-group"><label>Quick Range</label><select><option>Custom</option><option selected>This Month</option><option>Last Month</option><option>This Quarter</option><option>YTD</option></select></div>
+    </div>`;
     return UI.card('Vendor Reports & Dashboards', UI.statsGrid([
       { value: contractors.length, label: 'Active Headcount' },
       { value: VMP.formatCurrency(monthly), label: 'Monthly Bill Value' },
       { value: '94%', label: 'Fill Rate SLA' },
       { value: '18 days', label: 'Avg Time-to-Fill' }
-    ]) + UI.table(['Report', 'Description', 'Actions'],
+    ]) + UI.alert('info', 'Pick a period below before running any period-based report (marked with a date icon).') + dateRange + UI.table(['Report', 'Description', 'Period-based', 'Actions'],
       [
-        ['Contractor Headcount Report', 'Active, onboarding, and exiting contractors by project', 'Run'],
-        ['Payment History', 'Invoices approved and paid by period', 'Run'],
-        ['SOW Compliance Summary', 'Deliverables and compliance status across assignments', 'Run'],
-        ['Performance Summary', 'Manager ratings aggregated by contractor', 'Run'],
-        ['SLA Dashboard', 'Fill rate, time-to-fill, and response time on job orders', 'Run']
-      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td><button class="btn btn-sm btn-primary">${r[2]}</button> <button class="btn btn-sm btn-secondary">Export PDF</button></td></tr>`)
+        ['Contractor Headcount Report', 'Active, onboarding, and exiting contractors by project', false],
+        ['Payment History', 'Invoices approved and paid by period', true],
+        ['SOW Compliance Summary', 'Deliverables and compliance status across assignments', false],
+        ['Performance Summary', 'Manager ratings aggregated by contractor', true],
+        ['SLA Dashboard', 'Fill rate, time-to-fill, and response time on job orders', true]
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2] ? '📅 Yes — uses date range above' : '—'}</td><td><button class="btn btn-sm btn-primary">Run</button> <button class="btn btn-sm btn-secondary">Export PDF</button></td></tr>`)
     ));
   },
 
@@ -1181,5 +1293,301 @@ const SH = {
       UI.card('Send Remittance Advice to Vendor', UI.alert('success', 'Remittance advice with payment reference is sent to the vendor after settlement.') + table)
     ];
     return SH.workflowBanner('Invoice Payment & Settlement', steps, 'Approve & Release Payment', null, panels);
+  },
+
+  // ========== INVOICE MANAGEMENT MODULE ==========
+  /** Invoices scoped to the current actor (vendor sees only its own) */
+  invoicesForRole() {
+    if (VMP.currentRole === 'vendor') {
+      const vid = VMP.getCurrentVendorId();
+      return VMP_DATA.invoices.filter(i => i.vendor_id === vid);
+    }
+    return VMP_DATA.invoices;
+  },
+
+  invoiceStageSteps: ['Vendor Raises', 'HR Ops SOW Validation', 'TA Approval', 'Finance Processing', 'Paid'],
+
+  invoiceStageIndex(inv) {
+    const map = {
+      'Submitted': 0, 'SOW Validation': 1, 'TA Approval': 2,
+      'Finance Processing': 3, 'Paid': 4, 'Disputed': 1
+    };
+    return map[inv.invoice_stage] ?? 0;
+  },
+
+  /** Access matrix note shown at the top of the invoice module */
+  invoiceAccessNote() {
+    return UI.card('Who Does What — Invoice Lifecycle', UI.table(['Role', 'Responsibility', 'Access'],
+      [
+        ['Vendor', 'Raises / submits invoices against a completed billing period', 'Own invoices + status only'],
+        ['HR Ops', 'Validates invoice against SOW terms (headcount, rate, billing period)', 'First checkpoint — validate / dispute'],
+        ['TA (Orchestrator)', 'Approves the SOW-validated invoice', 'Approve / reject'],
+        ['Finance', 'Processes approved invoices — batching, disbursement, mark paid', 'Payment processing'],
+        ['TAQ Orchestrator', 'Read-only across the flow — "has this vendor been paid?"', 'Read-only']
+      ].map(r => `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td></tr>`)
+    ));
+  },
+
+  renderInvoiceRegister() {
+    const role = VMP.currentRole;
+    const invoices = SH.invoicesForRole();
+    const isVendor = role === 'vendor';
+
+    const stats = UI.statsGrid([
+      { value: invoices.filter(i => i.invoice_stage === 'SOW Validation').length, label: 'In SOW Validation', class: 'warning' },
+      { value: invoices.filter(i => i.invoice_stage === 'TA Approval').length, label: 'Awaiting TA Approval', class: 'warning' },
+      { value: invoices.filter(i => i.invoice_stage === 'Disputed').length, label: 'Disputed', class: 'danger' },
+      { value: invoices.filter(i => i.invoice_stage === 'Paid').length, label: 'Paid', class: 'success' }
+    ]);
+
+    const toolbar = isVendor
+      ? UI.toolbar(['<a href="#invoices/raise" class="btn btn-primary btn-sm">+ Raise Invoice</a>', '<input type="search" class="search-input" placeholder="Search my invoices...">'])
+      : UI.toolbar(['<input type="search" class="search-input" placeholder="Search invoices...">', '<select><option>All Stages</option><option>SOW Validation</option><option>TA Approval</option><option>Finance Processing</option><option>Paid</option><option>Disputed</option></select>']);
+
+    const table = UI.table(['Invoice #', 'Vendor', 'Project / SOW', 'Billing Period', 'Amount', 'GST', 'Stage', 'Due Date'],
+      invoices.map(i => `<tr data-nav="invoices/detail?id=${i.id}">
+        <td><strong>${i.invoice_number}</strong></td>
+        <td>${VMP.getVendor(i.vendor_id)?.vendor_name}</td>
+        <td>${VMP.getProject(i.project_id)?.project_code || '—'}<br><span style="font-size:.72rem;color:var(--muted)">${i.sow_document || '—'}</span></td>
+        <td>${VMP.formatDate(i.billing_period_start)} – ${VMP.formatDate(i.billing_period_end)}</td>
+        <td>${VMP.formatCurrency(i.invoice_amount, i.currency)} <span style="font-size:.7rem;color:var(--muted)">${i.currency}</span></td>
+        <td>${VMP.formatCurrency(i.tax_amount, i.currency)}</td>
+        <td>${UI.badge(i.invoice_stage)}</td>
+        <td>${VMP.formatDate(i.due_date)}</td>
+      </tr>`),
+      isVendor ? 'You have not raised any invoices yet.' : 'No invoices in the register.'
+    );
+
+    const steps = SH.invoiceStageSteps;
+    const note = 'Invoicing runs on its own recurring cycle — separate from the one-time-per-hire tool. Flow: Vendor raises → HR Ops validates against SOW → TA approves → Finance processes.';
+    const panels = [
+      UI.card('Vendor Raises Invoice', UI.alert('info', 'Vendor submits an invoice against a completed billing period.') + (isVendor ? '<a href="#invoices/raise" class="btn btn-sm btn-primary">Raise Invoice</a>' : '') + stats + table),
+      UI.card('HR Ops Validates Against SOW', UI.alert('info', 'HR Ops checks headcount, rate, and billing period against the SOW before it moves forward.') + table),
+      UI.card('TA Approves', table),
+      UI.card('Finance Processes', table),
+      UI.card('Paid', UI.table(['Invoice #', 'Vendor', 'Amount', 'Payment Batch', 'Stage'],
+        invoices.filter(i => i.invoice_stage === 'Paid' || i.invoice_stage === 'Finance Processing').map(i => `<tr data-nav="invoices/detail?id=${i.id}"><td>${i.invoice_number}</td><td>${VMP.getVendor(i.vendor_id)?.vendor_name}</td><td>${VMP.formatCurrency(i.invoice_amount, i.currency)}</td><td>${i.invoice_batch_id ? VMP.getInvoiceBatch(i.invoice_batch_id)?.batch_ref : '—'}</td><td>${UI.badge(i.invoice_stage)}</td></tr>`), 'None yet.'))
+    ];
+
+    return SH.workflowBanner('Invoice Management (Separate Module)', steps, isVendor ? 'Vendor Raises' : 'HR Ops SOW Validation', note, panels) +
+      (isVendor ? UI.alert('info', 'You can raise invoices and track the status of your own invoices only.') : SH.invoiceAccessNote());
+  },
+
+  renderInvoiceDetail() {
+    const id = Router.getQueryParam('id') || VMP_DATA.invoices[1].id;
+    const inv = VMP.getInvoice(id);
+    if (!inv) return UI.alert('danger', 'Invoice not found');
+    const vendor = VMP.getVendor(inv.vendor_id);
+    const role = VMP.currentRole;
+    const lines = (VMP_DATA.invoiceLineItems || []).filter(l => l.invoice_id === inv.id);
+    const periodTs = VMP_DATA.timesheets.filter(t => t.work_period_start >= inv.billing_period_start && t.work_period_end <= inv.billing_period_end);
+
+    // Side-by-side: Invoice vs SOW terms
+    const sowCompare = `<div class="grid-2">
+      ${UI.card('Invoice (as billed)', UI.detailRows([
+        { label: 'Invoice #', value: inv.invoice_number },
+        { label: 'Billing Period', value: `${VMP.formatDate(inv.billing_period_start)} – ${VMP.formatDate(inv.billing_period_end)}` },
+        { label: 'Headcount Billed', value: lines.length || inv.sow_headcount },
+        { label: 'Rate Billed', value: VMP.formatCurrency(inv.sow_rate, inv.currency) + '/mo' },
+        { label: 'Amount', value: VMP.formatCurrency(inv.invoice_amount, inv.currency) },
+        { label: 'GST', value: VMP.formatCurrency(inv.tax_amount, inv.currency) }
+      ]))}
+      ${UI.card('SOW Terms (' + (inv.sow_document || 'SOW') + ')', UI.detailRows([
+        { label: 'Project', value: VMP.getProject(inv.project_id)?.project_name || '—' },
+        { label: 'SOW Document', value: `<span class="entity-link">${inv.sow_document || '—'}</span>` },
+        { label: 'Approved Headcount', value: inv.sow_headcount },
+        { label: 'Approved Rate', value: VMP.formatCurrency(inv.sow_rate, inv.currency) + '/mo' },
+        { label: 'Billing Period Allowed', value: `${VMP.formatDate(inv.billing_period_start)} – ${VMP.formatDate(inv.billing_period_end)}` },
+        { label: 'Match', value: inv.sow_validation_status === 'Disputed' ? '<span style="color:#dc2626">✗ ' + (inv.dispute_reason || 'Mismatch') + '</span>' : '<span style="color:green">✓ Rate, headcount & period align</span>' }
+      ]))}
+    </div>`;
+
+    const lineTable = UI.card('Line Items (Invoice vs Timesheet vs Rate)', UI.table(
+      ['Contractor', 'Hours (Inv)', 'Hours (Approved TS)', 'Rate (Inv)', 'Rate (Approved)', 'Amount', 'Match'],
+      lines.length ? lines.map(l => `<tr class="${l.match ? '' : 'row-blocked'}">
+        <td>${VMP.getContractor(l.contractor_id)?.full_name || '—'}</td>
+        <td>${l.invoice_hours}h</td>
+        <td>${l.approved_hours}h</td>
+        <td>${VMP.formatCurrency(l.invoice_rate, inv.currency)}</td>
+        <td>${VMP.formatCurrency(l.approved_rate, inv.currency)}</td>
+        <td>${VMP.formatCurrency(l.amount, inv.currency)}</td>
+        <td>${l.match ? '<span style="color:green">✓</span>' : '<span style="color:red">✗ ' + (l.exception_reason || 'Mismatch') + '</span>'}</td>
+      </tr>`) : [`<tr><td colspan="7" style="color:var(--muted)">No line items recorded — validated against period timesheets (${periodTs.length} found).</td></tr>`]
+    ));
+
+    // Stage tracking so HR Ops can see where it sits after their step
+    const statusTrack = UI.card('Status Tracking', UI.table(['Stage', 'Owner', 'Status', 'By'],
+      [
+        ['Raised by Vendor', vendor?.contact_name, UI.badge('Submitted'), vendor?.vendor_name],
+        ['SOW Validation', 'HR Ops', UI.badge(inv.sow_validation_status), VMP.getUser(inv.sow_validated_by)?.full_name || '—'],
+        ['TA Approval', 'TA / Orchestrator', UI.badge(inv.ta_approval_status), VMP.getUser(inv.ta_approved_by)?.full_name || '—'],
+        ['Finance Processing', 'Finance', UI.badge(inv.finance_processing_status), inv.invoice_batch_id ? VMP.getInvoiceBatch(inv.invoice_batch_id)?.batch_ref : '—']
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`)
+    ));
+
+    // Role-specific action bar
+    let actions = '';
+    if (role === 'hr' && inv.sow_validation_status === 'Pending') {
+      actions = '<div class="form-actions"><button class="btn btn-success" data-action="validate-sow" data-id="' + inv.id + '">Validate Against SOW</button><button class="btn btn-danger" data-action="dispute-invoice" data-id="' + inv.id + '">Dispute (SOW Mismatch)</button></div>';
+    } else if ((role === 'taq') && inv.sow_validation_status === 'Validated' && inv.ta_approval_status === 'Pending') {
+      actions = '<div class="form-actions"><button class="btn btn-success" data-action="ta-approve-invoice" data-id="' + inv.id + '">Approve Invoice (TA)</button><button class="btn btn-danger" data-action="reject" data-type="Invoice" data-id="' + inv.id + '">Reject</button></div>';
+    } else if (role === 'finance' && inv.ta_approval_status === 'Approved' && inv.finance_processing_status !== 'Paid') {
+      actions = '<div class="form-actions"><button class="btn btn-primary" data-action="process-invoice" data-id="' + inv.id + '">Process for Payment</button><a href="#invoices/batches" class="btn btn-secondary">Add to Payment Batch</a></div>';
+    } else if (role === 'vendor') {
+      actions = UI.alert('info', 'Read-only — you can track your invoice status here.');
+    }
+
+    const headerCard = UI.card(`Invoice ${inv.invoice_number} — ${vendor?.vendor_name}`, UI.detailRows([
+      { label: 'Stage', value: UI.badge(inv.invoice_stage) },
+      { label: 'Amount', value: VMP.formatCurrency(inv.invoice_amount, inv.currency) + ' + ' + VMP.formatCurrency(inv.tax_amount, inv.currency) + ' GST' },
+      { label: 'Due Date', value: VMP.formatDate(inv.due_date) },
+      { label: 'Project', value: VMP.getProject(inv.project_id)?.project_name || '—' }
+    ]) + (inv.invoice_stage === 'Disputed' ? UI.alert('danger', 'Disputed: ' + (inv.dispute_reason || 'SOW mismatch — returned to vendor.')) : ''));
+
+    const body = headerCard + sowCompare + lineTable + statusTrack + actions;
+    return UI.processFlow(SH.invoiceStageSteps, SH.invoiceStageIndex(inv), { panels: SH.invoiceStageSteps.map((s, i) => i === SH.invoiceStageIndex(inv) ? body : UI.card(s, UI.alert('info', 'Stage: ' + s) + statusTrack)) });
+  },
+
+  renderInvoiceBatches() {
+    const batches = VMP_DATA.invoiceBatches || [];
+    const stats = UI.statsGrid([
+      { value: batches.filter(b => b.status === 'Pending').length, label: 'Pending', class: 'warning' },
+      { value: batches.filter(b => b.status === 'Processing').length, label: 'Processing', class: 'warning' },
+      { value: batches.filter(b => b.status === 'Disbursed').length, label: 'Disbursed', class: 'success' },
+      { value: VMP.formatCurrency(batches.reduce((s, b) => s + b.total_amount, 0)), label: 'Total Batched' }
+    ]);
+    const table = UI.card('Invoice Payment Batches', UI.table(['Batch Ref', 'Invoices', 'Total Amount', 'Status', 'Bank Transfer Ref', 'Payment Date'],
+      batches.map(b => `<tr>
+        <td><strong>${b.batch_ref}</strong></td>
+        <td>${b.invoice_ids.map(iid => VMP.getInvoice(iid)?.invoice_number).join(', ')}</td>
+        <td>${VMP.formatCurrency(b.total_amount, b.currency)} <span style="font-size:.7rem;color:var(--muted)">${b.currency}</span></td>
+        <td>${UI.badge(b.status)}</td>
+        <td>${b.bank_transfer_ref || '—'}</td>
+        <td>${VMP.formatDate(b.payment_date)}</td>
+      </tr>`),
+      'No payment batches yet.'
+    ));
+    return SH.workflowBanner('Payment Batches', ['Pending', 'Processing', 'Disbursed'], 'Processing',
+      'Approved invoices are grouped into payment batches for disbursement. Each batch tracks its bank transfer reference and payment date.',
+      [UI.card('Pending', stats + table), UI.card('Processing', table), UI.card('Disbursed', table)]);
+  },
+
+  renderInvoiceSowValidation() {
+    const queue = VMP_DATA.invoices.filter(i => i.sow_validation_status === 'Pending');
+    const validated = VMP_DATA.invoices.filter(i => i.sow_validation_status === 'Validated');
+    const disputed = VMP_DATA.invoices.filter(i => i.sow_validation_status === 'Disputed');
+
+    const stats = UI.statsGrid([
+      { value: queue.length, label: 'Awaiting SOW Validation', class: 'warning' },
+      { value: validated.length, label: 'Validated (moved forward)', class: 'success' },
+      { value: disputed.length, label: 'Disputed', class: 'danger' },
+      { value: VMP.formatCurrency(queue.reduce((s, i) => s + i.invoice_amount, 0)), label: 'Value Pending Validation' }
+    ]);
+
+    const queueTable = UI.card('Invoices Awaiting SOW Validation', UI.table(['Invoice #', 'Vendor', 'Project / SOW', 'Period', 'Amount', 'SOW Rate', 'Actions'],
+      queue.map(i => `<tr data-nav="invoices/detail?id=${i.id}">
+        <td><strong>${i.invoice_number}</strong></td>
+        <td>${VMP.getVendor(i.vendor_id)?.vendor_name}</td>
+        <td>${VMP.getProject(i.project_id)?.project_code || '—'} · ${i.sow_document || '—'}</td>
+        <td>${VMP.formatDate(i.billing_period_start)} – ${VMP.formatDate(i.billing_period_end)}</td>
+        <td>${VMP.formatCurrency(i.invoice_amount, i.currency)}</td>
+        <td>${VMP.formatCurrency(i.sow_rate, i.currency)}/mo</td>
+        <td><a href="#invoices/detail?id=${i.id}" class="btn btn-sm btn-secondary">Open (SOW side-by-side)</a> <button class="btn btn-sm btn-success" data-action="validate-sow" data-id="${i.id}">Validate</button></td>
+      </tr>`),
+      'No invoices awaiting SOW validation.'
+    ));
+
+    const trackTable = UI.card('After Your Step — Downstream Status', UI.table(['Invoice #', 'Your Validation', 'TA Approval', 'Finance Processing', 'Payment Batch'],
+      validated.concat(disputed).map(i => `<tr data-nav="invoices/detail?id=${i.id}"><td>${i.invoice_number}</td><td>${UI.badge(i.sow_validation_status)}</td><td>${UI.badge(i.ta_approval_status)}</td><td>${UI.badge(i.finance_processing_status)}</td><td>${i.invoice_batch_id ? VMP.getInvoiceBatch(i.invoice_batch_id)?.batch_ref : '—'}</td></tr>`),
+      'Nothing validated yet.'
+    ));
+
+    return SH.workflowBanner('HR Ops — Invoice SOW Validation', SH.invoiceStageSteps, 'HR Ops SOW Validation',
+      'The same queue pattern as "Candidates Awaiting HR Action". Open an invoice to see it side-by-side with the SOW terms, then validate or dispute. After you pass it along, track where it sits below.',
+      [UI.card('Awaiting Validation', stats + queueTable), UI.card('SOW Comparison', UI.alert('info', 'Open any invoice to compare it against the SOW (rate, headcount, billing period) pulled directly into the tool.') + queueTable), UI.card('Downstream Status', trackTable)]) + trackTable;
+  },
+
+  renderInvoiceTaApproval() {
+    const queue = VMP_DATA.invoices.filter(i =>
+      (i.invoice_stage === 'TA Approval' || (i.sow_validation_status === 'Validated' && i.ta_approval_status === 'Pending')) &&
+      i.ta_approval_status !== 'Approved' && i.invoice_stage !== 'Disputed' && i.sow_validation_status !== 'Disputed'
+    );
+    const awaitingHr = VMP_DATA.invoices.filter(i => i.sow_validation_status === 'Pending' || i.invoice_stage === 'SOW Validation');
+    const done = VMP_DATA.invoices.filter(i => i.ta_approval_status === 'Approved');
+    const stats = UI.statsGrid([
+      { value: queue.length, label: 'Awaiting Your Approval', class: 'warning' },
+      { value: awaitingHr.length, label: 'Still with HR Ops (SOW)', class: '' },
+      { value: done.length, label: 'TA Approved', class: 'success' },
+      { value: VMP.formatCurrency(queue.reduce((s, i) => s + i.invoice_amount, 0), 'INR'), label: 'Value Pending Approval' }
+    ]);
+    const queueTable = UI.table(
+      ['Invoice #', 'Vendor', 'Project', 'Billing Period', 'Amount', 'SOW', 'Validated By', 'Actions'],
+      queue.map(i => `<tr>
+        <td><strong><a href="#invoices/detail?id=${i.id}">${i.invoice_number}</a></strong></td>
+        <td>${VMP.getVendor(i.vendor_id)?.vendor_name || '—'}</td>
+        <td>${VMP.getProject(i.project_id)?.project_code || '—'}</td>
+        <td>${VMP.formatDate(i.billing_period_start)} – ${VMP.formatDate(i.billing_period_end)}</td>
+        <td>${VMP.formatCurrency(i.invoice_amount, i.currency)}</td>
+        <td style="font-size:.8rem">${i.sow_document || '—'}</td>
+        <td>${VMP.getUser(i.sow_validated_by)?.full_name || 'HR Ops'}</td>
+        <td>
+          <a href="#invoices/detail?id=${i.id}" class="btn btn-sm btn-secondary">Review</a>
+          <button class="btn btn-sm btn-success" data-action="ta-approve-invoice" data-id="${i.id}">Approve</button>
+          <button class="btn btn-sm btn-danger" data-action="reject" data-type="Invoice" data-id="${i.id}">Reject</button>
+        </td>
+      </tr>`),
+      'No SOW-validated invoices awaiting TA approval. After HR Ops validates an invoice against the SOW, it appears here.'
+    );
+    const waitingHrTable = UI.table(
+      ['Invoice #', 'Vendor', 'Amount', 'Stage'],
+      awaitingHr.map(i => `<tr data-nav="invoices/detail?id=${i.id}"><td>${i.invoice_number}</td><td>${VMP.getVendor(i.vendor_id)?.vendor_name}</td><td>${VMP.formatCurrency(i.invoice_amount, i.currency)}</td><td>${UI.badge(i.invoice_stage || 'SOW Validation')}</td></tr>`),
+      'None waiting on HR Ops.'
+    );
+    const doneTable = UI.table(
+      ['Invoice #', 'Vendor', 'Amount', 'TA Status', 'Next'],
+      done.map(i => `<tr data-nav="invoices/detail?id=${i.id}"><td>${i.invoice_number}</td><td>${VMP.getVendor(i.vendor_id)?.vendor_name}</td><td>${VMP.formatCurrency(i.invoice_amount, i.currency)}</td><td>${UI.badge('Approved')}</td><td>${UI.badge(i.finance_processing_status || i.invoice_stage)}</td></tr>`),
+      'None approved yet.'
+    );
+    return SH.workflowBanner('TA Invoice Approval', SH.invoiceStageSteps, 'TA Approval',
+      'Flow: Vendor raises → HR Ops validates vs SOW → you approve → Finance processes. Only HR-validated invoices reach this queue.',
+      [
+        UI.card('Awaiting Your Approval', UI.alert('info', 'These invoices passed HR Ops SOW validation and need your approval before Finance can process payment.') + stats + queueTable),
+        UI.card('Still with HR Ops', UI.alert('info', 'Not in your queue yet — waiting for SOW validation. When HR Ops validates them, they move here automatically.') + waitingHrTable),
+        UI.card('Already Approved by TA', doneTable)
+      ]);
+  },
+
+  renderRaiseInvoice() {
+    const vid = VMP.getCurrentVendorId() || 'v1';
+    const projects = VMP_DATA.projects.filter(p => p.status === 'Active');
+    return UI.card('Raise Invoice', UI.formGrid([
+      { label: 'Vendor', value: VMP.getVendor(vid)?.vendor_name, disabled: true },
+      { label: 'Invoice Number', value: 'INV-2025-051' },
+      { label: 'Project / SOW', type: 'select', options: projects.map(p => ({ label: p.project_code + ' — ' + p.project_name })) },
+      { label: 'Billing Period Start', type: 'date', value: '2025-06-01' },
+      { label: 'Billing Period End', type: 'date', value: '2025-06-30' },
+      { label: 'Headcount', value: '2' },
+      { label: 'Amount (INR)', value: '185000' },
+      { label: 'GST Amount (INR)', value: '33300' },
+      { label: 'Due Date', type: 'date', value: '2025-07-15' },
+      { label: 'Supporting Timesheet', type: 'file', value: 'timesheets_jun.pdf' },
+      { label: 'Invoice PDF', type: 'file', value: 'invoice_051.pdf' }
+    ]) + UI.alert('info', 'Submit an invoice against a completed billing period. It goes to HR Ops for SOW validation first, then TA approval, then Finance processing.') +
+    '<div class="form-actions"><button class="btn btn-secondary">Save Draft</button><button class="btn btn-primary">Submit Invoice</button></div>');
+  },
+
+  // ---- Finance: read-only final timesheet check (ownership moved to HR Ops) ----
+  renderFinanceTimesheetReview() {
+    const ready = VMP_DATA.timesheets.filter(t => t.hr_approval_status === 'HR Approved' || t.reconciliation_status === 'Confirmed' || t.reconciliation_status === 'In Finance Batch' || t.reconciliation_status === 'Paid');
+    const table = UI.table(['Contractor', 'Period', 'Approved Hours', 'Supervisor', 'HR Ops', 'Status'],
+      ready.map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.approved_hours || t.submitted_hours}h</td><td>${UI.badge('Supervisor Approved')}</td><td>${UI.badge('HR Approved')}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`),
+      'No HR-approved timesheets awaiting final finance check.'
+    );
+    return SH.workflowBanner('Timesheet Review (Final Check)', ['Contractor Submits', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Finance Batch'], 'Finance Reviews',
+      'Ownership moved to HR Ops. Finance only performs a read-only final check that the already-approved timesheet is clean before it feeds into invoicing/payment.',
+      [
+        UI.card('Finance Final Check (read-only)', UI.alert('info', 'These timesheets are already approved by the supervisor and HR Ops. Finance confirms the batch is clean before payment — no uploading, parsing, or chasing confirmations.') + table),
+        UI.card('Ready for Batch', UI.alert('success', 'Clean timesheets flow into finance payment batches.') + '<a href="#finance/batches" class="btn btn-sm btn-primary">Open Payment Batches</a>')
+      ]);
   }
 };

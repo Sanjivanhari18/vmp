@@ -30,7 +30,7 @@
       <div class="actor-box" style="background:#7c3aed">
         <h3>TAQ Orchestrator / System Admin</h3>
         <ul>
-          <li>MRF intake & post job positions to vendors</li>
+          <li>MFR intake & post job positions to vendors</li>
           <li>Route vendor-shortlisted profiles to managers</li>
           <li>Monitor end-to-end hiring pipeline</li>
           <li>Super admin: users, roles, permissions</li>
@@ -44,15 +44,16 @@
           <li>Send offers & contractor onboarding</li>
           <li>BGV, documents, assignments</li>
           <li>Register/activate vendors & compliance</li>
-          <li>Send approved hours to Finance</li>
+          <li>Own timesheet process — approve after supervisor</li>
+          <li>Validate invoices against SOW terms</li>
         </ul>
       </div>
       <div class="actor-box" style="background:#dc2626">
         <h3>Finance</h3>
         <ul>
           <li>Rate card & billing history</li>
-          <li>Raise invoices after approval</li>
-          <li>Finance payment batches</li>
+          <li>Process approved invoices → payment batches</li>
+          <li>Timesheet review = read-only final check</li>
           <li>Dual approval &gt; $10,000</li>
           <li>Quarterly spend reports</li>
         </ul>
@@ -60,10 +61,10 @@
       <div class="actor-box" style="background:#ea580c">
         <h3>Contractor's Manager</h3>
         <ul>
-          <li>Raise MRF to TAQ</li>
+          <li>Raise MFR to TAQ</li>
           <li>Review profiles forwarded by TAQ</li>
           <li>Select candidates needed for role</li>
-          <li>Approve contractor timesheets</li>
+          <li>Supervisor: first approval on contractor timesheets</li>
           <li>Performance ratings & SOW feedback</li>
         </ul>
       </div>
@@ -83,9 +84,9 @@
         <ul>
           <li>Submit documents to HR</li>
           <li>Cooperate with HR on interviews</li>
-          <li>Submit weekly timesheets</li>
+          <li>Submit own weekly timesheets (start of approval chain)</li>
           <li>Upload documents via portal</li>
-          <li>Request leave</li>
+          <li>Request leave (with balance shown)</li>
         </ul>
       </div>
     </div>
@@ -93,7 +94,9 @@
     <div class="flow-section">
       <h3>End-to-End Journeys</h3>
       <ol>
-        <li><strong>Hiring Orchestration:</strong> Manager MRF → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding → Finance rate → Timesheet → Manager approval → Finance batch → Invoice → <strong>Vendor payment approval</strong></li>
+        <li><strong>Hiring Orchestration:</strong> Manager MFR → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding → Finance rate → Timesheet → Vendor payment approval</li>
+        <li><strong>Timesheet to Payment:</strong> Contractor Submits → <strong>Supervisor Approves</strong> → <strong>HR Ops Approves</strong> → Finance Reviews (read-only) → Finance Batch</li>
+        <li><strong>Invoice Management (recurring):</strong> Vendor Raises → <strong>HR Ops validates vs SOW</strong> → TA Approves → Finance Processes → Paid / Disputed</li>
         <li><strong>Assignment Transfer:</strong> Initiate Transfer → Select New Project/Manager → Approval → Close Old Assignment → Open New → Notify Stakeholders → Clear Anomaly</li>
         <li><strong>Contractor Exit:</strong> End Date Trigger → Exit Checklist → Access Revocation → Final Timesheet → Invoice Closure → Record Archive → Stakeholder Notifications</li>
       </ol>

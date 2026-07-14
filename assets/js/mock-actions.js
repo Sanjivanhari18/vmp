@@ -161,6 +161,192 @@ const MockActions = {
     MockActions.refresh();
   },
 
+  // ---- Invoice Management module actions ----
+  validateSow(id) {
+    const inv = VMP.getInvoice(id);
+    if (!inv) return;
+    inv.sow_validation_status = 'Validated';
+    inv.sow_validated_by = VMP.currentUser?.id || 'u2';
+    inv.invoice_stage = 'TA Approval';
+    inv.ta_approval_status = 'Pending';
+    VMP.addAuditLog('Invoice', id, 'SOW Validated', 'SOW Validation', 'Rate, headcount & period match SOW — sent to TA');
+    VMP.showToast(inv.invoice_number + ' validated against SOW — now in TA Invoice Approvals queue', {
+      nav: 'invoices/ta-approval',
+      entity_type: 'Invoice',
+      entity_id: id,
+      recipient_user_id: 'u1'
+    });
+    MockActions.refresh();
+  },
+
+  disputeInvoice(id) {
+    const inv = VMP.getInvoice(id);
+    if (!inv) return;
+    const reason = window.prompt('Reason for dispute (SOW mismatch):', 'Billed rate/headcount does not match SOW');
+    if (reason === null) return;
+    inv.sow_validation_status = 'Disputed';
+    inv.sow_validated_by = VMP.currentUser?.id || 'u2';
+    inv.invoice_stage = 'Disputed';
+    inv.dispute_reason = reason || 'SOW mismatch';
+    VMP.addAuditLog('Invoice', id, 'SOW Disputed', 'SOW Validation', reason || 'SOW mismatch');
+    VMP.showToast('Invoice disputed — returned to vendor');
+    MockActions.refresh();
+  },
+
+  taApproveInvoice(id) {
+    const inv = VMP.getInvoice(id);
+    if (!inv) return;
+    if (inv.sow_validation_status !== 'Validated') { VMP.showToast('HR Ops must validate against SOW first'); return; }
+    inv.ta_approval_status = 'Approved';
+    inv.ta_approved_by = VMP.currentUser?.id || 'u1';
+    inv.invoice_stage = 'Finance Processing';
+    inv.finance_processing_status = 'Processing';
+    VMP.addAuditLog('Invoice', id, 'TA Approved', 'TA Approval', 'Sent to Finance for processing');
+    VMP.showToast(inv.invoice_number + ' approved by TA — sent to Finance for processing', {
+      nav: 'invoices/detail?id=' + id,
+      entity_type: 'Invoice',
+      entity_id: id,
+      recipient_user_id: 'u3'
+    });
+    MockActions.refresh();
+  },
+
+  processInvoice(id) {
+    const inv = VMP.getInvoice(id);
+    if (!inv) return;
+    if (inv.ta_approval_status !== 'Approved') { VMP.showToast('TA approval required before processing'); return; }
+    inv.finance_processing_status = 'Paid';
+    inv.invoice_stage = 'Paid';
+    inv.payment_status = 'Paid';
+    // attach to / create a payment batch
+    if (!VMP_DATA.invoiceBatches) VMP_DATA.invoiceBatches = [];
+    let batch = VMP_DATA.invoiceBatches.find(b => b.status === 'Processing');
+    if (!batch) {
+      batch = { id: VMP.nextId('ib-pay-', VMP_DATA.invoiceBatches), batch_ref: 'PAYB-2025-' + String(VMP_DATA.invoiceBatches.length + 1).padStart(2, '0'), invoice_ids: [], total_amount: 0, currency: inv.currency, status: 'Processing', bank_transfer_ref: null, payment_date: null, created_by: VMP.currentUser?.id || 'u3' };
+      VMP_DATA.invoiceBatches.push(batch);
+    }
+    if (!batch.invoice_ids.includes(id)) { batch.invoice_ids.push(id); batch.total_amount += inv.invoice_amount + inv.tax_amount; }
+    inv.invoice_batch_id = batch.id;
+    VMP.addAuditLog('Invoice', id, 'Processed for Payment', 'Finance Processing', 'Added to ' + batch.batch_ref);
+    VMP.showToast('Invoice processed & added to payment batch ' + batch.batch_ref);
+    MockActions.refresh();
+  },
+
+  // ---- Timesheet ownership: supervisor + HR Ops approvals ----
+  supervisorApproveTimesheet(id) {
+    const ts = VMP.getTimesheet(id);
+    if (!ts) return;
+    if (ts.leave_mismatch || ts.holiday_mismatch) { VMP.showToast('Resolve leave/holiday flags before approving'); return; }
+    ts.manager_approval_status = 'Supervisor Approved';
+    ts.approved_hours = ts.submitted_hours;
+    VMP.addAuditLog('Timesheet', id, 'Supervisor Approved', 'Submitted', 'Awaiting HR Ops approval');
+    VMP.showToast('Timesheet approved by supervisor — sent to HR Ops');
+    MockActions.refresh();
+  },
+
+  hrApproveTimesheet(id) {
+    const ts = VMP.getTimesheet(id);
+    if (!ts) return;
+    if (ts.manager_approval_status !== 'Supervisor Approved') { VMP.showToast('Supervisor must approve first'); return; }
+    ts.hr_approval_status = 'HR Approved';
+    ts.reconciliation_status = 'Confirmed';
+    ts.approved_hours = ts.submitted_hours;
+    VMP.addAuditLog('Timesheet', id, 'HR Ops Approved', 'Supervisor Approved', 'Ready for finance final check');
+    VMP.showToast('Timesheet approved by HR Ops — ready for finance review');
+    MockActions.refresh();
+  },
+
+  // ---- Contractor: leave withdraw ----
+  cancelLeave(id) {
+    const lr = VMP_DATA.leaveRecords.find(l => l.id === id);
+    if (!lr) return;
+    if (lr.leave_status !== 'Pending') { VMP.showToast('Only pending requests can be withdrawn'); return; }
+    lr.leave_status = 'Withdrawn';
+    VMP.addAuditLog('Leave', id, 'Withdrawn', 'Pending', 'Withdrawn by contractor');
+    VMP.showToast('Leave request withdrawn');
+    MockActions.refresh();
+  },
+
+  // ---- Documents: reminder + re-upload ----
+  sendDocReminder(id) {
+    const doc = VMP_DATA.documents.find(d => d.id === id);
+    const who = doc ? (VMP.getContractor(doc.entity_id)?.full_name || doc.entity_id) : id;
+    VMP.addAuditLog('Document', id, 'Reminder Sent', null, 'Reminder to ' + who);
+    VMP.showToast('Reminder sent to ' + who + ' for ' + (doc?.document_type || 'document'));
+    MockActions.refresh();
+  },
+
+  reuploadDoc(id) {
+    const doc = VMP_DATA.documents.find(d => d.id === id) || VMP_DATA.documents.find(d => d.entity_id === 'c1' && d.document_type === id);
+    if (!doc) { VMP.showToast('Document not found'); return; }
+    const today = new Date().toISOString().slice(0, 10);
+    doc.status = 'Pending Upload';
+    doc.document_name = (doc.document_type || 'doc').replace(/\s/g, '-') + '-updated.pdf';
+    doc.category = doc.category || VMP.docCategory(doc.document_type);
+    doc.updated_at = today;
+    if (!doc.created_at) doc.created_at = today;
+    VMP.addAuditLog('Document', doc.id, 'Re-upload Requested', 'Verified', 'Updated copy pending verification');
+    VMP.showToast(doc.document_type + ' re-upload started — filed in Document Repository', { nav: 'shared/documents', entity_type: 'Document', entity_id: doc.id });
+    MockActions.refresh();
+  },
+
+  addRepoDocument() {
+    const form = document.querySelector('#screen-content .form-grid');
+    const data = {};
+    form?.querySelectorAll('.form-group').forEach(g => {
+      const label = g.querySelector('label')?.textContent.trim();
+      const input = g.querySelector('input, select, textarea');
+      if (label && input) data[label] = input.value;
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    const docType = data['Document Type'] || 'Other';
+    const category = data['Category'] || VMP.docCategory(docType);
+    const related = data['Related To'] || '';
+    let entity_type = 'Vendor';
+    let entity_id = 'v1';
+    if (/contractor|amit|me \(/i.test(related) || VMP.currentRole === 'contractor') {
+      entity_type = 'Contractor';
+      entity_id = 'c1';
+    } else if (/techtalent/i.test(related)) {
+      entity_id = 'v2';
+    } else if (VMP.currentRole === 'vendor') {
+      entity_id = VMP.getCurrentVendorId() || 'v1';
+    }
+    const doc = {
+      id: VMP.nextId('doc', VMP_DATA.documents),
+      entity_type,
+      entity_id,
+      document_type: docType,
+      category,
+      document_name: data['Document Name'] || (docType.replace(/\s/g, '-') + '.pdf'),
+      uploaded_by: VMP.currentUser?.id || 'system',
+      status: 'Verified',
+      created_at: today,
+      updated_at: today
+    };
+    VMP_DATA.documents.unshift(doc);
+    VMP.addAuditLog('Document', doc.id, 'Added to Repository', null, category + ' / ' + doc.document_name);
+    VMP.showToast(doc.document_name + ' added to Document Repository under ' + category, { nav: 'shared/documents', entity_type: 'Document', entity_id: doc.id });
+    MockActions.refresh();
+  },
+
+  trackEndDate(id) {
+    const c = VMP.getContractor(id);
+    VMP.showToast('End-date tracking enabled for ' + (c?.full_name || id) + ' — reminders at 60/30/15 days');
+  },
+
+  renewSow(id) {
+    const c = VMP.getContractor(id);
+    VMP.showToast('SOW renewal flow started for ' + (c?.full_name || 'contractor') + ' — extension request sent to HR & manager');
+    VMP.addAuditLog('SOW', id, 'Renewal Initiated', null, 'Renewal flow started');
+  },
+
+  startExitSow(id) {
+    const c = VMP.getContractor(id);
+    VMP.showToast('Exit flow started for ' + (c?.full_name || 'contractor') + ' — deboarding checklist created');
+    VMP.addAuditLog('SOW', id, 'Exit Initiated', null, 'Exit flow started');
+  },
+
   addApproval(entity_type, entity_id, workflow, stage, approver_role) {
     const id = VMP.nextId('ap', VMP_DATA.approvals);
     VMP_DATA.approvals.unshift({
@@ -248,21 +434,27 @@ const MockActions = {
     return true;
   },
 
-  reject(id, type) {
+  reject(id, type, reason) {
+    const note = reason ? (' — Note: ' + reason) : '';
     const ap = VMP_DATA.approvals.find(a => a.entity_id === id || a.id === id);
-    if (ap) { ap.status = 'Rejected'; VMP.addAuditLog(ap.entity_type, ap.entity_id, 'Rejected', 'Pending', 'Rejected'); }
+    if (ap) { ap.status = 'Rejected'; ap.rejection_note = reason || null; VMP.addAuditLog(ap.entity_type, ap.entity_id, 'Rejected', 'Pending', 'Rejected' + note); }
     const ts = VMP_DATA.timesheets.find(t => t.id === id);
-    if (ts) { ts.manager_approval_status = 'Rejected'; ts.reconciliation_status = 'Rejected'; VMP.addAuditLog('Timesheet', id, 'Rejected', 'Pending', 'Rejected'); }
+    if (ts) { ts.manager_approval_status = 'Rejected'; ts.reconciliation_status = 'Rejected'; ts.rejection_note = reason || null; VMP.addAuditLog('Timesheet', id, 'Rejected', 'Pending', 'Rejected' + note); }
     const lr = VMP_DATA.leaveRecords.find(l => l.id === id);
-    if (lr) { lr.leave_status = 'Rejected'; VMP.addAuditLog('Leave', id, 'Rejected', 'Pending', 'Rejected'); }
+    if (lr) { lr.leave_status = 'Rejected'; lr.rejection_note = reason || null; VMP.addAuditLog('Leave', id, 'Rejected', 'Pending', 'Rejected' + note); }
     const rc = VMP_DATA.rateCards.find(r => r.id === id);
-    if (rc) { rc.approval_status = 'Rejected'; rc.status = 'Draft'; VMP.addAuditLog('Rate Card', id, 'Rejected', 'Pending Finance', 'Rejected'); }
+    if (rc) { rc.approval_status = 'Rejected'; rc.status = 'Draft'; VMP.addAuditLog('Rate Card', id, 'Rejected', 'Pending Finance', 'Rejected' + note); }
     const rate = VMP_DATA.rates.find(r => r.id === id);
-    if (rate) { rate.approval_status = 'Rejected'; VMP.addAuditLog('Contractor Rate', id, 'Rejected', 'Pending Finance', 'Rejected'); }
+    if (rate) { rate.approval_status = 'Rejected'; VMP.addAuditLog('Contractor Rate', id, 'Rejected', 'Pending Finance', 'Rejected' + note); }
     const inv = VMP_DATA.invoices.find(i => i.id === id);
     if (inv && type === 'Vendor Payment') {
       inv.vendor_approval_status = 'Rejected';
-      VMP.addAuditLog('Invoice', id, 'Vendor Payment Rejected', 'Pending', 'Rejected');
+      VMP.addAuditLog('Invoice', id, 'Vendor Payment Rejected', 'Pending', 'Rejected' + note);
+    } else if (inv && type === 'Invoice') {
+      inv.ta_approval_status = 'Rejected';
+      inv.invoice_stage = 'Disputed';
+      inv.dispute_reason = reason || 'Rejected by TA';
+      VMP.addAuditLog('Invoice', id, 'TA Rejected', inv.invoice_stage, 'Rejected' + note);
     }
     return true;
   },
@@ -394,11 +586,11 @@ const MockActions = {
       'Cancel'() { Router.go('positions/list'); }
     },
 
-    'manager/mrf': {
+    'manager/mfr': {
       'Submit to TAQ'(btn) {
         const d = MockActions.readForm(btn);
-        const id = VMP.nextId('mrf', VMP_DATA.mrfs);
-        VMP_DATA.mrfs.unshift({
+        const id = VMP.nextId('mfr', VMP_DATA.mfrs);
+        VMP_DATA.mfrs.unshift({
           id, requested_by: VMP.currentUser?.id || 'u4',
           role_title: d['Role Title'] || 'New Role', skills: d['Skills Required'] || '',
           headcount: parseInt(d['Headcount'] || '1', 10),
@@ -406,8 +598,8 @@ const MockActions = {
           urgency: d['Urgency'] || 'Medium', status: 'Raised',
           open_position_id: null, created_date: new Date().toISOString().slice(0, 10)
         });
-        VMP.addAuditLog('MRF', id, 'Submitted', null, d['Role Title']);
-        VMP.showToast('MRF submitted to TAQ — added to your MRF status table');
+        VMP.addAuditLog('MFR', id, 'Submitted', null, d['Role Title']);
+        VMP.showToast('MFR submitted to TAQ — added to your MFR status table');
         MockActions.refresh();
       }
     },
@@ -471,6 +663,36 @@ const MockActions = {
         VMP.showToast('Invoice uploaded — added to invoice list for reconciliation');
         Router.go('finance/invoices');
       }
+    },
+
+    'invoices/raise': {
+      'Submit Invoice'(btn) {
+        const d = MockActions.readForm(btn);
+        const vid = VMP.getCurrentVendorId() || 'v1';
+        const amount = parseInt(d['Amount (INR)'] || '185000', 10);
+        const project = VMP_DATA.projects.find(p => (d['Project / SOW'] || '').includes(p.project_code)) || VMP.getProject('p2');
+        const id = VMP.nextId('inv', VMP_DATA.invoices);
+        VMP_DATA.invoices.unshift({
+          id, vendor_id: vid, invoice_number: d['Invoice Number'] || ('INV-2025-' + String(VMP_DATA.invoices.length + 51).padStart(3, '0')),
+          invoice_date: new Date().toISOString().slice(0, 10),
+          billing_period_start: d['Billing Period Start'] || '2025-06-01',
+          billing_period_end: d['Billing Period End'] || '2025-06-30',
+          invoice_amount: amount, tax_amount: parseInt(d['GST Amount (INR)'] || String(Math.round(amount * 0.18)), 10),
+          currency: 'INR', batch_id: null, reconciliation_status: 'Reconciling', exception_reason: null,
+          payment_status: 'Pending', dual_approval_required: amount > 800000, approver1: null, approver2: null, vendor_approval_status: 'Pending',
+          completeness_status: 'Passed', pm_confirmation_status: 'Pending', budget_approval_status: 'Pending', finance_approval_status: 'Pending', approval_stage: 'Service Confirmation',
+          settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null,
+          project_id: project?.id || 'p2', sow_document: 'SOW-' + (project?.department || 'General') + '-2025.pdf',
+          sow_headcount: parseInt(d['Headcount'] || '2', 10), sow_rate: Math.round(amount / (parseInt(d['Headcount'] || '2', 10) || 1)),
+          due_date: d['Due Date'] || '2025-07-15', invoice_batch_id: null,
+          invoice_stage: 'SOW Validation', sow_validation_status: 'Pending', sow_validated_by: null,
+          ta_approval_status: 'Not Started', ta_approved_by: null, finance_processing_status: 'Not Started'
+        });
+        VMP.addAuditLog('Invoice', id, 'Raised by Vendor', null, d['Invoice Number'] || 'New invoice — awaiting HR Ops SOW validation');
+        VMP.showToast('Invoice submitted — awaiting HR Ops SOW validation', { nav: 'invoices/validation', entity_type: 'Invoice', entity_id: id, recipient_user_id: 'u2' });
+        Router.go('invoices/register');
+      },
+      'Save Draft'() { VMP.showToast('Invoice saved as draft'); }
     },
 
     'assignments/transfer': {
@@ -657,38 +879,46 @@ const MockActions = {
       'Upload'(btn) {
         const row = btn.closest('tr');
         const docType = row?.querySelector('td')?.textContent?.trim();
+        const today = new Date().toISOString().slice(0, 10);
         let doc = VMP_DATA.documents.find(d => d.entity_id === 'c1' && d.document_type === docType);
         if (!doc) {
-          doc = { id: VMP.nextId('doc', VMP_DATA.documents), entity_type: 'Contractor', entity_id: 'c1', document_type: docType, document_name: null, uploaded_by: null, status: 'Pending Upload' };
+          doc = {
+            id: VMP.nextId('doc', VMP_DATA.documents), entity_type: 'Contractor', entity_id: 'c1',
+            document_type: docType, category: VMP.docCategory(docType), document_name: null,
+            uploaded_by: null, status: 'Pending Upload', created_at: today, updated_at: today
+          };
           VMP_DATA.documents.push(doc);
         }
         doc.status = 'Verified';
+        doc.category = doc.category || VMP.docCategory(docType);
         doc.document_name = (docType || 'doc').replace(/\s/g, '-') + '-uploaded.pdf';
         doc.uploaded_by = 'c1';
-        VMP.addAuditLog('Document', doc.id, 'Uploaded', 'Pending Upload', 'Verified');
-        VMP.showToast((docType || 'Document') + ' uploaded and marked verified');
+        doc.updated_at = today;
+        if (!doc.created_at) doc.created_at = today;
+        VMP.addAuditLog('Document', doc.id, 'Uploaded', 'Pending Upload', 'Verified — added to Document Repository');
+        VMP.showToast((docType || 'Document') + ' uploaded — filed in Document Repository', { nav: 'shared/documents', entity_type: 'Document', entity_id: doc.id });
         MockActions.refresh();
       },
-      'Download'() { VMP.showToast('Download started'); }
+      'Download'() { VMP.showToast('Download started', { silent: true }); }
     },
 
-    'taq/mrf': {
+    'taq/mfr': {
       'Convert to Job Order'(btn) {
         const row = btn.closest('tr');
-        const mrfId = row?.querySelector('td')?.textContent;
-        const mrf = VMP_DATA.mrfs.find(m => m.id === mrfId);
-        if (mrf && mrf.status === 'Raised') {
+        const mfrId = row?.querySelector('td')?.textContent;
+        const mfr = VMP_DATA.mfrs.find(m => m.id === mfrId);
+        if (mfr && mfr.status === 'Raised') {
           const opId = VMP.nextId('op', VMP_DATA.openPositions);
           VMP_DATA.openPositions.unshift({
-            id: opId, project_id: 'p1', position_title: mrf.role_title, skill_set: mrf.skills,
-            required_experience: '3+ years', no_of_positions: mrf.headcount, budget_rate: 9000,
+            id: opId, project_id: 'p1', position_title: mfr.role_title, skill_set: mfr.skills,
+            required_experience: '3+ years', no_of_positions: mfr.headcount, budget_rate: 9000,
             location: 'Remote', start_date: '2025-08-01', end_date: '2026-07-31',
-            status: 'Open', requested_by: mrf.requested_by, approved_by: 'u1', vendor_ids: ['v1', 'v2']
+            status: 'Open', requested_by: mfr.requested_by, approved_by: 'u1', vendor_ids: ['v1', 'v2']
           });
-          mrf.status = 'Converted to Job Order';
-          mrf.open_position_id = opId;
-          VMP.addAuditLog('MRF', mrfId, 'Converted', 'Raised', 'Job Order ' + opId);
-          VMP.showToast('MRF converted to job order — open position created');
+          mfr.status = 'Converted to Job Order';
+          mfr.open_position_id = opId;
+          VMP.addAuditLog('MFR', mfrId, 'Converted', 'Raised', 'Job Order ' + opId);
+          VMP.showToast('MFR converted to job order — open position created');
           MockActions.refresh();
         }
       }

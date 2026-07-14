@@ -31,16 +31,16 @@ const VMP_DATA = {
   ],
 
   vendors: [
-    { id: 'v1', vendor_code: 'VND-001', vendor_name: 'Acme Staffing Solutions', registered_name: 'Acme Staffing Pvt Ltd', gst_number: '27AABCA1234F1Z5', pan_number: 'AABCA1234F', address: 'Mumbai, MH', contact_name: 'Ravi Menon', contact_email: 'ravi@acmestaff.com', contact_phone: '+91-9123456780', compliance_status: 'Compliant', approval_status: 'Approved', status: 'Active' },
-    { id: 'v2', vendor_code: 'VND-002', vendor_name: 'TechTalent Partners', registered_name: 'TechTalent Partners LLP', gst_number: '29AABCT5678G1Z2', pan_number: 'AABCT5678G', address: 'Bangalore, KA', contact_name: 'Kavitha Rao', contact_email: 'kavitha@techtalent.com', contact_phone: '+91-9123456781', compliance_status: 'Pending Review', approval_status: 'Pending Finance Approval', status: 'Draft' },
-    { id: 'v3', vendor_code: 'VND-003', vendor_name: 'Global Contract Services', registered_name: 'GCS International', gst_number: '07AABCG9012H1Z8', pan_number: 'AABCG9012H', address: 'Delhi, DL', contact_name: 'Mohit Singh', contact_email: 'mohit@gcs.com', contact_phone: '+91-9123456782', compliance_status: 'Non-Compliant', approval_status: 'Suspended', status: 'Suspended' }
+    { id: 'v1', vendor_code: 'VND-001', vendor_name: 'Acme Staffing Solutions', registered_name: 'Acme Staffing Pvt Ltd', gst_number: '27AABCA1234F1Z5', pan_number: 'AABCA1234F', address: 'Mumbai, MH', contact_name: 'Ravi Menon', contact_email: 'ravi@acmestaff.com', contact_phone: '+91-9123456780', compliance_status: 'Compliant', approval_status: 'Approved', status: 'Active', contract_start_date: '2024-01-15', contract_end_date: '2025-12-31', contract_document: 'MSA-Acme-2024.pdf' },
+    { id: 'v2', vendor_code: 'VND-002', vendor_name: 'TechTalent Partners', registered_name: 'TechTalent Partners LLP', gst_number: '29AABCT5678G1Z2', pan_number: 'AABCT5678G', address: 'Bangalore, KA', contact_name: 'Kavitha Rao', contact_email: 'kavitha@techtalent.com', contact_phone: '+91-9123456781', compliance_status: 'Pending Review', approval_status: 'Pending Finance Approval', status: 'Draft', contract_start_date: '2025-07-01', contract_end_date: '2026-06-30', contract_document: null },
+    { id: 'v3', vendor_code: 'VND-003', vendor_name: 'Global Contract Services', registered_name: 'GCS International', gst_number: '07AABCG9012H1Z8', pan_number: 'AABCG9012H', address: 'Delhi, DL', contact_name: 'Mohit Singh', contact_email: 'mohit@gcs.com', contact_phone: '+91-9123456782', compliance_status: 'Non-Compliant', approval_status: 'Suspended', status: 'Suspended', contract_start_date: '2023-03-01', contract_end_date: '2025-08-31', contract_document: 'MSA-GCS-2023.pdf' }
   ],
 
   vendorDocuments: [
-    { id: 'vd1', vendor_id: 'v1', document_type: 'MSA', document_name: 'Master Service Agreement 2025.pdf', expiry_date: '2026-12-31', verification_status: 'Verified', uploaded_by: 'u2', verified_by: 'u3' },
-    { id: 'vd2', vendor_id: 'v1', document_type: 'SOW', document_name: 'SOW-Engineering-2025.pdf', expiry_date: '2025-12-31', verification_status: 'Verified', uploaded_by: 'u2', verified_by: 'u2' },
-    { id: 'vd3', vendor_id: 'v1', document_type: 'Insurance', document_name: 'Insurance Certificate.pdf', expiry_date: '2025-06-30', verification_status: 'Expiring Soon', uploaded_by: 'u2', verified_by: 'u2' },
-    { id: 'vd4', vendor_id: 'v2', document_type: 'Company Registration', document_name: 'COI-TechTalent.pdf', expiry_date: null, verification_status: 'Pending', uploaded_by: 'u2', verified_by: null }
+    { id: 'vd1', vendor_id: 'v1', document_type: 'MSA', document_name: 'Master Service Agreement 2025.pdf', expiry_date: '2026-12-31', renewal_date: '2026-11-30', verification_status: 'Verified', uploaded_by: 'u2', verified_by: 'u3', created_at: '2024-01-15', updated_at: '2024-01-15' },
+    { id: 'vd2', vendor_id: 'v1', document_type: 'SOW', document_name: 'SOW-Engineering-2025.pdf', expiry_date: '2025-12-31', renewal_date: '2025-11-30', verification_status: 'Verified', uploaded_by: 'u2', verified_by: 'u2', created_at: '2025-01-05', updated_at: '2025-04-20' },
+    { id: 'vd3', vendor_id: 'v1', document_type: 'Insurance', document_name: 'Insurance Certificate.pdf', expiry_date: '2025-06-30', renewal_date: '2025-06-15', verification_status: 'Expiring Soon', uploaded_by: 'u2', verified_by: 'u2', created_at: '2024-07-01', updated_at: '2025-05-20' },
+    { id: 'vd4', vendor_id: 'v2', document_type: 'Company Registration', document_name: 'COI-TechTalent.pdf', expiry_date: null, renewal_date: null, verification_status: 'Pending', uploaded_by: 'u2', verified_by: null, created_at: '2025-06-18', updated_at: '2025-06-18' }
   ],
 
   projects: [
@@ -58,7 +58,7 @@ const VMP_DATA = {
   ],
 
   contractors: [
-    { id: 'c1', contractor_code: 'CON-001', vendor_id: 'v1', full_name: 'Amit Joshi', email: 'amit.joshi@email.com', phone: '+91-9988776655', skill_set: 'Java, Spring Boot', experience_years: 6, location: 'Mumbai', joining_date: '2024-03-15', exit_date: null, status: 'Active', bgv_status: 'Cleared', bank_account: '1234567890', ifsc: 'HDFC0001234', onboarding_stage: 'Active', project_name: 'Platform Modernization', pay_rate: 92000, contract_end_date: '2025-12-31', fte_conversion_eligible: 'Yes — eligible at tenure end' },
+    { id: 'c1', contractor_code: 'CON-001', vendor_id: 'v1', full_name: 'Amit Joshi', email: 'amit.joshi@email.com', phone: '+91-9988776655', skill_set: 'Java, Spring Boot', experience_years: 6, location: 'Mumbai', joining_date: '2024-03-15', exit_date: null, status: 'Active', bgv_status: 'Cleared', bank_account: '1234567890', ifsc: 'HDFC0001234', onboarding_stage: 'Active', project_name: 'Platform Modernization', pay_rate: 92000, contract_end_date: '2025-12-31', fte_conversion_eligible: 'Yes — eligible at tenure end', leave_balance: { annual: 12, sick: 6, personal: 3 } },
     { id: 'c2', contractor_code: 'CON-002', vendor_id: 'v1', full_name: 'Deepa Krishnan', email: 'deepa.k@email.com', phone: '+91-9988776656', skill_set: 'React, TypeScript', experience_years: 4, location: 'Bangalore', joining_date: '2024-08-01', exit_date: null, status: 'Active', bgv_status: 'Cleared', bank_account: '2345678901', ifsc: 'ICIC0002345', onboarding_stage: 'Active' },
     { id: 'c3', contractor_code: 'CON-003', vendor_id: 'v1', full_name: 'Suresh Reddy', email: 'suresh.r@email.com', phone: '+91-9988776657', skill_set: 'Python, Data Engineering', experience_years: 5, location: 'Hyderabad', joining_date: '2025-01-10', exit_date: null, status: 'Active', bgv_status: 'Cleared', bank_account: '3456789012', ifsc: 'SBIN0003456', onboarding_stage: 'Active' },
     { id: 'c4', contractor_code: 'CON-004', vendor_id: 'v1', full_name: 'Meera Iyer', email: 'meera.i@email.com', phone: '+91-9988776658', skill_set: 'UX Design, Figma', experience_years: 3, location: 'Bangalore', joining_date: '2025-04-01', exit_date: null, status: 'Onboarding', bgv_status: 'In Progress', bank_account: null, ifsc: null, onboarding_stage: 'Docs Submitted', project_name: 'Customer Portal Revamp', pay_rate: 68000, contract_end_date: '2026-03-31', fte_conversion_eligible: 'To be reviewed at tenure end' },
@@ -100,20 +100,20 @@ const VMP_DATA = {
   ],
 
   timesheets: [
-    { id: 'ts1', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-06-06 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
-    { id: 'ts2', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 0, rejected_hours: 0, reconciliation_status: 'Awaiting Confirmation', manager_approval_status: 'Awaiting Confirmation', contractor_confirmation_status: 'Pending', confirmation_email_sent_at: '2025-06-16 09:00', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
-    { id: 'ts3', contractor_id: 'c3', assignment_id: 'a3', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 32, approved_hours: 0, rejected_hours: 0, reconciliation_status: 'Awaiting Confirmation', manager_approval_status: 'Awaiting Confirmation', contractor_confirmation_status: 'Pending', confirmation_email_sent_at: '2025-06-16 09:05', leave_mismatch: true, holiday_mismatch: false, batch_id: null,
+    { id: 'ts1', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-06-06 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
+    { id: 'ts2', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 0, rejected_hours: 0, reconciliation_status: 'Awaiting Supervisor', manager_approval_status: 'Awaiting Supervisor', hr_approval_status: 'Pending', contractor_confirmation_status: 'Submitted', confirmation_email_sent_at: '2025-06-16 09:00', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
+    { id: 'ts3', contractor_id: 'c3', assignment_id: 'a3', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 32, approved_hours: 0, rejected_hours: 0, reconciliation_status: 'Awaiting Supervisor', manager_approval_status: 'Awaiting Supervisor', hr_approval_status: 'Pending', contractor_confirmation_status: 'Submitted', confirmation_email_sent_at: '2025-06-16 09:05', leave_mismatch: true, holiday_mismatch: false, batch_id: null,
       daily_hours: [{ day: 'Mon', date: 'Jun 2', hours: 8 }, { day: 'Tue', date: 'Jun 3', hours: 8 }, { day: 'Wed', date: 'Jun 4', hours: 8, flag: 'Leave on file' }, { day: 'Thu', date: 'Jun 5', hours: 0 }, { day: 'Fri', date: 'Jun 6', hours: 8 }] },
-    { id: 'ts4', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:10', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
-    { id: 'ts5', contractor_id: 'c6', assignment_id: 'a4', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-06-06 17:15', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
-    { id: 'ts6', contractor_id: 'c8', assignment_id: 'a5', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 0, rejected_hours: 40, reconciliation_status: 'Rejected', manager_approval_status: 'Rejected', contractor_confirmation_status: 'Rejected', confirmation_email_sent_at: '2025-06-16 09:10', leave_mismatch: true, holiday_mismatch: true, batch_id: null,
+    { id: 'ts4', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:10', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
+    { id: 'ts5', contractor_id: 'c6', assignment_id: 'a4', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Awaiting HR', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'Pending', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-06-06 17:15', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
+    { id: 'ts6', contractor_id: 'c8', assignment_id: 'a5', work_period_start: '2025-06-02', work_period_end: '2025-06-06', submitted_hours: 40, approved_hours: 0, rejected_hours: 40, reconciliation_status: 'Rejected', manager_approval_status: 'Rejected', hr_approval_status: 'Pending', contractor_confirmation_status: 'Rejected', confirmation_email_sent_at: '2025-06-16 09:10', leave_mismatch: true, holiday_mismatch: true, batch_id: null,
       daily_hours: [{ day: 'Mon', date: 'Jun 2', hours: 8 }, { day: 'Tue', date: 'Jun 3', hours: 8 }, { day: 'Wed', date: 'Jun 4', hours: 8, flag: 'Leave on file' }, { day: 'Thu', date: 'Jun 5', hours: 8, flag: 'Holiday' }, { day: 'Fri', date: 'Jun 6', hours: 8 }] },
-    { id: 'ts7', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:00', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
-    { id: 'ts8', contractor_id: 'c3', assignment_id: 'a3', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
-    { id: 'ts9', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-05-19', work_period_end: '2025-05-23', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Paid', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-23 17:00', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb2' },
-    { id: 'ts10', contractor_id: 'c6', assignment_id: 'a4', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:20', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
-    { id: 'ts11', contractor_id: 'c8', assignment_id: 'a5', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:25', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
-    { id: 'ts12', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-05-19', work_period_end: '2025-05-23', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Paid', manager_approval_status: 'Confirmed', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-23 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb2' }
+    { id: 'ts7', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:00', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
+    { id: 'ts8', contractor_id: 'c3', assignment_id: 'a3', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Confirmed', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
+    { id: 'ts9', contractor_id: 'c1', assignment_id: 'a1', work_period_start: '2025-05-19', work_period_end: '2025-05-23', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Paid', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-23 17:00', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb2' },
+    { id: 'ts10', contractor_id: 'c6', assignment_id: 'a4', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'In Finance Batch', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:20', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb1' },
+    { id: 'ts11', contractor_id: 'c8', assignment_id: 'a5', work_period_start: '2025-05-26', work_period_end: '2025-05-30', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Awaiting HR', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'Pending', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-30 17:25', leave_mismatch: false, holiday_mismatch: false, batch_id: null },
+    { id: 'ts12', contractor_id: 'c2', assignment_id: 'a2', work_period_start: '2025-05-19', work_period_end: '2025-05-23', submitted_hours: 40, approved_hours: 40, rejected_hours: 0, reconciliation_status: 'Paid', manager_approval_status: 'Supervisor Approved', hr_approval_status: 'HR Approved', contractor_confirmation_status: 'Confirmed', confirmation_email_sent_at: '2025-05-23 17:05', leave_mismatch: false, holiday_mismatch: false, batch_id: 'fb2' }
   ],
 
   holidays: [
@@ -135,16 +135,40 @@ const VMP_DATA = {
   invoices: [
     { id: 'inv1', vendor_id: 'v1', invoice_number: 'INV-2025-042', invoice_date: '2025-06-10', billing_period_start: '2025-05-01', billing_period_end: '2025-05-31', invoice_amount: 425000, tax_amount: 76500, currency: 'INR', batch_id: 'fb2', reconciliation_status: 'Approved', exception_reason: null, payment_status: 'Paid', dual_approval_required: true, approver1: 'u3', approver2: 'u6', vendor_approval_status: 'Approved',
       completeness_status: 'Passed', pm_confirmation_status: 'Confirmed', budget_approval_status: 'Approved', finance_approval_status: 'Approved', approval_stage: 'Approved & Eligible for Payment',
-      settlement_status: 'Paid', payment_file_ref: 'PAY-2025-089', remittance_sent: true, scheduled_date: '2025-06-12' },
+      settlement_status: 'Paid', payment_file_ref: 'PAY-2025-089', remittance_sent: true, scheduled_date: '2025-06-12',
+      project_id: 'p1', sow_document: 'SOW-Engineering-2025.pdf', sow_headcount: 5, sow_rate: 92000, due_date: '2025-06-25', invoice_batch_id: 'ib-pay-1',
+      invoice_stage: 'Paid', sow_validation_status: 'Validated', sow_validated_by: 'u2', ta_approval_status: 'Approved', ta_approved_by: 'u1', finance_processing_status: 'Paid' },
     { id: 'inv2', vendor_id: 'v1', invoice_number: 'INV-2025-048', invoice_date: '2025-06-15', billing_period_start: '2025-05-26', billing_period_end: '2025-06-06', invoice_amount: 185000, tax_amount: 33300, currency: 'INR', batch_id: 'fb1', reconciliation_status: 'Reconciling', exception_reason: null, payment_status: 'Pending', dual_approval_required: false, approver1: null, approver2: null, vendor_approval_status: 'Pending',
       completeness_status: 'Passed', pm_confirmation_status: 'Pending', budget_approval_status: 'Pending', finance_approval_status: 'Pending', approval_stage: 'Service Confirmation',
-      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null },
+      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null,
+      project_id: 'p2', sow_document: 'SOW-Product-2025.pdf', sow_headcount: 2, sow_rate: 72000, due_date: '2025-06-30', invoice_batch_id: null,
+      invoice_stage: 'SOW Validation', sow_validation_status: 'Pending', sow_validated_by: null, ta_approval_status: 'Not Started', ta_approved_by: null, finance_processing_status: 'Not Started' },
     { id: 'inv3', vendor_id: 'v1', invoice_number: 'INV-2025-049', invoice_date: '2025-06-16', billing_period_start: '2025-06-01', billing_period_end: '2025-06-15', invoice_amount: 520000, tax_amount: 93600, currency: 'INR', batch_id: null, reconciliation_status: 'Blocked', exception_reason: 'Rate mismatch: billed at 95000 vs approved 92000 for CON-001', payment_status: 'Blocked', dual_approval_required: true, approver1: null, approver2: null, vendor_approval_status: 'Pending',
       completeness_status: 'Passed', pm_confirmation_status: 'Blocked', budget_approval_status: 'Pending', finance_approval_status: 'Pending', approval_stage: 'Reconciliation Exception',
-      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null },
+      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null,
+      project_id: 'p1', sow_document: 'SOW-Engineering-2025.pdf', sow_headcount: 5, sow_rate: 92000, due_date: '2025-06-28', invoice_batch_id: null,
+      invoice_stage: 'Disputed', sow_validation_status: 'Disputed', sow_validated_by: 'u2', ta_approval_status: 'Not Started', ta_approved_by: null, finance_processing_status: 'Not Started', dispute_reason: 'Billed rate ₹95,000 exceeds SOW rate ₹92,000 for CON-001' },
     { id: 'inv4', vendor_id: 'v1', invoice_number: 'INV-2025-050', invoice_date: '2025-06-17', billing_period_start: '2025-06-01', billing_period_end: '2025-06-15', invoice_amount: 72000, tax_amount: 12960, currency: 'INR', batch_id: null, reconciliation_status: 'Approved', exception_reason: null, payment_status: 'Vendor Approved', dual_approval_required: false, approver1: 'u3', approver2: null, vendor_approval_status: 'Approved',
       completeness_status: 'Passed', pm_confirmation_status: 'Confirmed', budget_approval_status: 'Approved', finance_approval_status: 'Approved', approval_stage: 'Approved & Eligible for Payment',
-      settlement_status: 'Scheduled', payment_file_ref: null, remittance_sent: false, scheduled_date: '2025-06-20' }
+      settlement_status: 'Scheduled', payment_file_ref: null, remittance_sent: false, scheduled_date: '2025-06-20',
+      project_id: 'p2', sow_document: 'SOW-Product-2025.pdf', sow_headcount: 2, sow_rate: 55000, due_date: '2025-06-30', invoice_batch_id: null,
+      invoice_stage: 'Finance Processing', sow_validation_status: 'Validated', sow_validated_by: 'u2', ta_approval_status: 'Approved', ta_approved_by: 'u1', finance_processing_status: 'Processing' },
+    { id: 'inv5', vendor_id: 'v1', invoice_number: 'INV-2025-051', invoice_date: '2025-06-18', billing_period_start: '2025-06-01', billing_period_end: '2025-06-15', invoice_amount: 276000, tax_amount: 49680, currency: 'INR', batch_id: null, reconciliation_status: 'Reconciling', exception_reason: null, payment_status: 'Pending', dual_approval_required: false, approver1: null, approver2: null, vendor_approval_status: 'Pending',
+      completeness_status: 'Passed', pm_confirmation_status: 'Confirmed', budget_approval_status: 'Pending', finance_approval_status: 'Pending', approval_stage: 'Service Confirmation',
+      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null,
+      project_id: 'p1', sow_document: 'SOW-Engineering-2025.pdf', sow_headcount: 3, sow_rate: 92000, due_date: '2025-07-02', invoice_batch_id: null,
+      invoice_stage: 'TA Approval', sow_validation_status: 'Validated', sow_validated_by: 'u2', ta_approval_status: 'Pending', ta_approved_by: null, finance_processing_status: 'Not Started' },
+    { id: 'inv6', vendor_id: 'v1', invoice_number: 'INV-2025-052', invoice_date: '2025-06-19', billing_period_start: '2025-06-01', billing_period_end: '2025-06-15', invoice_amount: 144000, tax_amount: 25920, currency: 'INR', batch_id: null, reconciliation_status: 'Reconciling', exception_reason: null, payment_status: 'Pending', dual_approval_required: false, approver1: null, approver2: null, vendor_approval_status: 'Pending',
+      completeness_status: 'Passed', pm_confirmation_status: 'Confirmed', budget_approval_status: 'Pending', finance_approval_status: 'Pending', approval_stage: 'Service Confirmation',
+      settlement_status: 'Not Started', payment_file_ref: null, remittance_sent: false, scheduled_date: null,
+      project_id: 'p3', sow_document: 'SOW-Data-2025.pdf', sow_headcount: 1, sow_rate: 85000, due_date: '2025-07-05', invoice_batch_id: null,
+      invoice_stage: 'TA Approval', sow_validation_status: 'Validated', sow_validated_by: 'u2', ta_approval_status: 'Pending', ta_approved_by: null, finance_processing_status: 'Not Started' }
+  ],
+
+  /** Invoice payment batches (Invoice Management module) — groups approved invoices for disbursement */
+  invoiceBatches: [
+    { id: 'ib-pay-1', batch_ref: 'PAYB-2025-01', invoice_ids: ['inv1'], total_amount: 501500, currency: 'INR', status: 'Disbursed', bank_transfer_ref: 'NEFT-889021', payment_date: '2025-06-12', created_by: 'u3' },
+    { id: 'ib-pay-2', batch_ref: 'PAYB-2025-02', invoice_ids: ['inv4'], total_amount: 84960, currency: 'INR', status: 'Processing', bank_transfer_ref: null, payment_date: null, created_by: 'u3' }
   ],
 
   financeBatches: [
@@ -176,10 +200,10 @@ const VMP_DATA = {
     { id: 'an3', contractor_id: 'c2', assignment_id: 'a7', current_project: 'PRJ-104 Legacy Migration', expected_manager: 'Vikram Mehta', actual_manager: 'Vikram Mehta', anomaly_type: 'Inactive Project Assignment', owner: 'u2', status: 'Resolved' }
   ],
 
-  mrfs: [
-    { id: 'mrf1', requested_by: 'u4', role_title: 'Senior Java Developer', skills: 'Java, Spring Boot, AWS', headcount: 2, contract_duration: '9 months', urgency: 'High', status: 'Converted to Job Order', open_position_id: 'op1', created_date: '2025-03-01' },
-    { id: 'mrf2', requested_by: 'u5', role_title: 'UX Designer', skills: 'Figma, User Research', headcount: 1, contract_duration: '6 months', urgency: 'Medium', status: 'In Progress', open_position_id: 'op2', created_date: '2025-04-15' },
-    { id: 'mrf3', requested_by: 'u4', role_title: 'DevOps Engineer', skills: 'Kubernetes, CI/CD', headcount: 1, contract_duration: '12 months', urgency: 'Low', status: 'Raised', open_position_id: null, created_date: '2025-06-10' }
+  mfrs: [
+    { id: 'mfr1', requested_by: 'u4', role_title: 'Senior Java Developer', skills: 'Java, Spring Boot, AWS', headcount: 2, contract_duration: '9 months', urgency: 'High', status: 'Converted to Job Order', open_position_id: 'op1', created_date: '2025-03-01' },
+    { id: 'mfr2', requested_by: 'u5', role_title: 'UX Designer', skills: 'Figma, User Research', headcount: 1, contract_duration: '6 months', urgency: 'Medium', status: 'In Progress', open_position_id: 'op2', created_date: '2025-04-15' },
+    { id: 'mfr3', requested_by: 'u4', role_title: 'DevOps Engineer', skills: 'Kubernetes, CI/CD', headcount: 1, contract_duration: '12 months', urgency: 'Low', status: 'Raised', open_position_id: null, created_date: '2025-06-10' }
   ],
 
   jobOrders: [
@@ -211,12 +235,22 @@ const VMP_DATA = {
   ],
 
   documents: [
-    { id: 'doc1', entity_type: 'Contractor', entity_id: 'c1', document_type: 'NDA', document_name: 'NDA-Amit-Joshi.pdf', uploaded_by: 'c1', status: 'Verified' },
-    { id: 'doc2', entity_type: 'Contractor', entity_id: 'c1', document_type: 'ID Proof', document_name: 'Aadhaar-Amit.pdf', uploaded_by: 'c1', status: 'Verified' },
-    { id: 'doc3', entity_type: 'Contractor', entity_id: 'c4', document_type: 'NDA', document_name: null, uploaded_by: null, status: 'Pending Upload' },
-    { id: 'doc4', entity_type: 'Vendor', entity_id: 'v1', document_type: 'SOW', document_name: 'SOW-Engineering-2025.pdf', uploaded_by: 'u2', status: 'Verified' },
-    { id: 'doc5', entity_type: 'Contractor', entity_id: 'c4', document_type: 'Bank Details', document_name: null, uploaded_by: null, status: 'Rejected', rejection_reason: 'IFSC mismatch' },
-    { id: 'doc6', entity_type: 'Contractor', entity_id: 'c1', document_type: 'Tax Forms', document_name: null, uploaded_by: null, status: 'Pending Upload' }
+    { id: 'doc1', entity_type: 'Contractor', entity_id: 'c1', document_type: 'NDA', category: 'NDA', document_name: 'NDA-Amit-Joshi.pdf', uploaded_by: 'c1', status: 'Verified', created_at: '2024-03-12', updated_at: '2024-03-12' },
+    { id: 'doc2', entity_type: 'Contractor', entity_id: 'c1', document_type: 'ID Proof', category: 'Compliance', document_name: 'Aadhaar-Amit.pdf', uploaded_by: 'c1', status: 'Verified', created_at: '2024-03-14', updated_at: '2024-03-14' },
+    { id: 'doc3', entity_type: 'Contractor', entity_id: 'c4', document_type: 'NDA', category: 'NDA', document_name: null, uploaded_by: null, status: 'Pending Upload', created_at: '2025-06-10', updated_at: '2025-06-10' },
+    { id: 'doc4', entity_type: 'Vendor', entity_id: 'v1', document_type: 'SOW', category: 'SOW', document_name: 'SOW-Engineering-2025.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2025-01-05', updated_at: '2025-04-20' },
+    { id: 'doc5', entity_type: 'Contractor', entity_id: 'c4', document_type: 'Bank Details', category: 'Compliance', document_name: null, uploaded_by: null, status: 'Rejected', rejection_reason: 'IFSC mismatch', created_at: '2025-06-08', updated_at: '2025-06-11' },
+    { id: 'doc6', entity_type: 'Contractor', entity_id: 'c1', document_type: 'Tax Forms', category: 'Compliance', document_name: null, uploaded_by: null, status: 'Pending Upload', created_at: '2025-06-01', updated_at: '2025-06-01' },
+    { id: 'doc7', entity_type: 'Vendor', entity_id: 'v1', document_type: 'MSA', category: 'MSA', document_name: 'MSA-Acme-2024.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2024-01-15', updated_at: '2024-01-15' },
+    { id: 'doc8', entity_type: 'Vendor', entity_id: 'v1', document_type: 'SLA', category: 'SLA', document_name: 'SLA-Acme-Staffing-2025.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2024-01-15', updated_at: '2025-01-10' },
+    { id: 'doc9', entity_type: 'Vendor', entity_id: 'v1', document_type: 'NDA', category: 'NDA', document_name: 'NDA-Acme-Mutual.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2024-01-12', updated_at: '2024-01-15' },
+    { id: 'doc10', entity_type: 'Vendor', entity_id: 'v1', document_type: 'Insurance', category: 'Compliance', document_name: 'Insurance Certificate.pdf', uploaded_by: 'u2', status: 'Expiring Soon', created_at: '2024-07-01', updated_at: '2025-05-20' },
+    { id: 'doc11', entity_type: 'Vendor', entity_id: 'v1', document_type: 'SOW', category: 'SOW', document_name: 'SOW-Product-2025.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2025-02-01', updated_at: '2025-05-28' },
+    { id: 'doc12', entity_type: 'Vendor', entity_id: 'v2', document_type: 'MSA', category: 'MSA', document_name: 'MSA-TechTalent-Draft.pdf', uploaded_by: 'u2', status: 'Pending Upload', created_at: '2025-06-18', updated_at: '2025-06-18' },
+    { id: 'doc13', entity_type: 'Vendor', entity_id: 'v2', document_type: 'SLA', category: 'SLA', document_name: 'SLA-TechTalent-Draft.pdf', uploaded_by: 'u2', status: 'Pending Upload', created_at: '2025-06-18', updated_at: '2025-06-18' },
+    { id: 'doc14', entity_type: 'Vendor', entity_id: 'v1', document_type: 'Company Registration', category: 'Compliance', document_name: 'COI-Acme-2024.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2024-01-08', updated_at: '2024-01-08' },
+    { id: 'doc15', entity_type: 'Contractor', entity_id: 'c1', document_type: 'BGV Consent', category: 'Compliance', document_name: 'BGV-Consent-Amit.pdf', uploaded_by: 'c1', status: 'Verified', created_at: '2024-03-10', updated_at: '2024-03-10' },
+    { id: 'doc16', entity_type: 'Vendor', entity_id: 'v1', document_type: 'SOW', category: 'SOW', document_name: 'SOW-Data-2025.pdf', uploaded_by: 'u2', status: 'Verified', created_at: '2025-03-15', updated_at: '2025-06-10' }
   ],
 
   agreements: [
@@ -247,11 +281,12 @@ const VMP_DATA = {
   ],
 
   notifications: [
-    { id: 'n1', recipient_user_id: 'u4', event: 'Timesheet Confirmation Email (CC)', entity_type: 'Timesheet', entity_id: 'ts2', channel: 'Email', status: 'Sent', sent_at: '2025-06-16 09:00' },
-    { id: 'n2', recipient_user_id: 'u3', event: 'Rate Approval Required', entity_type: 'Contractor Rate', entity_id: 'r5', channel: 'Email', status: 'Sent', sent_at: '2025-06-12 14:30' },
-    { id: 'n3', recipient_user_id: 'u2', event: 'Document Expiring Soon', entity_type: 'Vendor Document', entity_id: 'vd3', channel: 'In-App', status: 'Sent', sent_at: '2025-06-15 08:00' },
-    { id: 'n4', recipient_user_id: 'u2', event: 'Anomaly Detected', entity_type: 'Reporting Anomaly', entity_id: 'an1', channel: 'Email', status: 'Sent', sent_at: '2025-06-14 11:00' },
-    { id: 'n5', recipient_user_id: 'u1', event: 'New MRF Received', entity_type: 'MRF', entity_id: 'mrf3', channel: 'Email', status: 'Sent', sent_at: '2025-06-10 16:45' }
+    { id: 'n1', recipient_user_id: 'u4', event: 'Timesheet awaiting supervisor approval', entity_type: 'Timesheet', entity_id: 'ts2', channel: 'In-App', status: 'Sent', sent_at: '2025-06-16 09:00', nav: 'manager/timesheets', read: false },
+    { id: 'n2', recipient_user_id: 'u3', event: 'Rate approval required', entity_type: 'Contractor Rate', entity_id: 'r5', channel: 'In-App', status: 'Sent', sent_at: '2025-06-12 14:30', nav: 'admin/approvals', read: false },
+    { id: 'n3', recipient_user_id: 'u2', event: 'Document expiring soon', entity_type: 'Vendor Document', entity_id: 'vd3', channel: 'In-App', status: 'Sent', sent_at: '2025-06-15 08:00', nav: 'vendors/compliance', read: false },
+    { id: 'n4', recipient_user_id: 'u2', event: 'Reporting anomaly detected', entity_type: 'Reporting Anomaly', entity_id: 'an1', channel: 'In-App', status: 'Sent', sent_at: '2025-06-14 11:00', nav: 'reports/anomalies', read: false },
+    { id: 'n5', recipient_user_id: 'u1', event: 'New MFR received', entity_type: 'MFR', entity_id: 'mfr3', channel: 'In-App', status: 'Sent', sent_at: '2025-06-10 16:45', nav: 'taq/mfr', read: false },
+    { id: 'n6', recipient_user_id: 'u1', event: '2 invoices awaiting TA approval after SOW validation', entity_type: 'Invoice', entity_id: 'inv5', channel: 'In-App', status: 'Sent', sent_at: '2025-06-18 11:20', nav: 'invoices/ta-approval', read: false }
   ],
 
   notificationTemplates: [
@@ -304,7 +339,10 @@ const VMP_DATA = {
     { invoice_id: 'inv1', contractor_id: 'c2', invoice_hours: 160, approved_hours: 160, invoice_rate: 78000, approved_rate: 78000, amount: 78000, match: true },
     { invoice_id: 'inv2', contractor_id: 'c3', invoice_hours: 168, approved_hours: 168, invoice_rate: 85000, approved_rate: 85000, amount: 89250, match: true },
     { invoice_id: 'inv3', contractor_id: 'c1', invoice_hours: 160, approved_hours: 160, invoice_rate: 95000, approved_rate: 92000, amount: 95000, match: false, exception_reason: 'Rate mismatch' },
-    { invoice_id: 'inv4', contractor_id: 'c5', invoice_hours: 152, approved_hours: 152, invoice_rate: 55000, approved_rate: 55000, amount: 52250, match: true }
+    { invoice_id: 'inv4', contractor_id: 'c5', invoice_hours: 152, approved_hours: 152, invoice_rate: 55000, approved_rate: 55000, amount: 52250, match: true },
+    { invoice_id: 'inv5', contractor_id: 'c1', invoice_hours: 120, approved_hours: 120, invoice_rate: 92000, approved_rate: 92000, amount: 138000, match: true },
+    { invoice_id: 'inv5', contractor_id: 'c8', invoice_hours: 120, approved_hours: 120, invoice_rate: 92000, approved_rate: 92000, amount: 138000, match: true },
+    { invoice_id: 'inv6', contractor_id: 'c3', invoice_hours: 160, approved_hours: 160, invoice_rate: 85000, approved_rate: 85000, amount: 144000, match: true }
   ],
 
   performanceRatings: [
@@ -350,6 +388,57 @@ const VMP = {
   getVendorCandidates: (vid) => VMP_DATA.candidates.filter(c => c.vendor_id === vid),
   getVendorSowCompliance: (vid) => VMP_DATA.vendorSowCompliance.filter(sc => VMP.getContractor(sc.contractor_id)?.vendor_id === vid),
   getVendorDocuments: (vid) => VMP_DATA.vendorDocuments.filter(d => d.vendor_id === vid),
+
+  DOC_CATEGORIES: ['Compliance', 'SOW', 'SLA', 'NDA', 'MSA', 'Other'],
+
+  docCategory: (type) => {
+    const t = String(type || '').trim();
+    if (t === 'MSA' || /master service/i.test(t)) return 'MSA';
+    if (t === 'SOW' || /statement of work/i.test(t)) return 'SOW';
+    if (t === 'SLA' || /service level/i.test(t)) return 'SLA';
+    if (t === 'NDA' || /non.?disclosure/i.test(t)) return 'NDA';
+    if (['Insurance', 'Company Registration', 'ID Proof', 'Bank Details', 'Tax Forms', 'BGV Consent', 'GST Certificate'].includes(t)) return 'Compliance';
+    return 'Other';
+  },
+
+  /** Unified document repository rows — any submitted doc lands here. Role-scoped for mock. */
+  getRepositoryDocuments: (role) => {
+    const r = role || VMP.currentRole;
+    const rows = VMP_DATA.documents.map(d => ({
+      ...d,
+      category: d.category || VMP.docCategory(d.document_type),
+      created_at: d.created_at || d.updated_at || '2025-01-01',
+      updated_at: d.updated_at || d.created_at || '2025-01-01'
+    }));
+    if (r === 'contractor') {
+      const cid = VMP.currentUser?.id || 'c1';
+      const c = VMP.getContractor(cid);
+      const vid = c?.vendor_id || 'v1';
+      return rows.filter(d =>
+        (d.entity_type === 'Contractor' && d.entity_id === cid) ||
+        (d.entity_type === 'Vendor' && d.entity_id === vid && ['MSA', 'SOW', 'SLA', 'NDA'].includes(d.category || VMP.docCategory(d.document_type)))
+      );
+    }
+    if (r === 'vendor') {
+      const vid = VMP.getCurrentVendorId?.() || 'v1';
+      return rows.filter(d => d.entity_type === 'Vendor' && d.entity_id === vid);
+    }
+    if (r === 'manager') {
+      const teamIds = new Set((VMP.getManagerTeam?.('u4') || []).map(c => c.id).concat(['c1', 'c2', 'c3', 'c6', 'c8']));
+      return rows.filter(d =>
+        (d.entity_type === 'Contractor' && teamIds.has(d.entity_id)) ||
+        ['SOW', 'SLA', 'NDA', 'MSA', 'Compliance'].includes(d.category || VMP.docCategory(d.document_type))
+      );
+    }
+    // taq / hr / finance — full repository
+    return rows;
+  },
+
+  entityLabelForDoc: (d) => {
+    if (d.entity_type === 'Contractor') return VMP.getContractor(d.entity_id)?.full_name || d.entity_id;
+    if (d.entity_type === 'Vendor') return VMP.getVendor(d.entity_id)?.vendor_name || d.entity_id;
+    return `${d.entity_type} ${d.entity_id}`;
+  },
   getProjectPositions: (pid) => VMP_DATA.openPositions.filter(o => o.project_id === pid),
   getContractorTimesheets: (cid) => VMP_DATA.timesheets.filter(t => t.contractor_id === cid),
   getManagerTeam: (mid) => VMP_DATA.assignments.filter(a => a.reporting_manager_id === mid && a.assignment_status === 'Active').map(a => VMP.getContractor(a.contractor_id)).filter(Boolean),
@@ -367,6 +456,47 @@ const VMP = {
     else if (avg !== null && avg >= 4.2) standing = 'Trusted';
     return { avg, sustained, ratingCount: ratings.length, concernCount: concerns.length, standing };
   },
+  getInvoiceBatch: (id) => (VMP_DATA.invoiceBatches || []).find(b => b.id === id),
+
+  /** Demo "today" anchor so expiry windows are stable in the mockup */
+  today: () => new Date('2025-06-18'),
+
+  daysUntil: (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d)) return null;
+    return Math.round((d - VMP.today()) / (1000 * 60 * 60 * 24));
+  },
+
+  /** Returns items (vendor contracts + documents) expiring within `days`.
+   *  bucket: '30' | '60' | '90' | 'all' */
+  getExpiringItems: (days = 90) => {
+    const items = [];
+    VMP_DATA.vendors.forEach(v => {
+      const d = VMP.daysUntil(v.contract_end_date);
+      if (d !== null && d <= days) items.push({ type: 'Vendor Contract', name: v.vendor_name, ref: v.vendor_code, expiry: v.contract_end_date, days: d, nav: `vendors/detail?id=${v.id}` });
+    });
+    VMP_DATA.vendorDocuments.forEach(doc => {
+      const d = VMP.daysUntil(doc.expiry_date);
+      if (d !== null && d <= days) items.push({ type: doc.document_type + ' Document', name: VMP.getVendor(doc.vendor_id)?.vendor_name, ref: doc.document_name, expiry: doc.expiry_date, days: d, nav: 'vendors/compliance' });
+    });
+    return items.sort((a, b) => a.days - b.days);
+  },
+
+  expiryBucket: (days) => {
+    if (days === null) return '—';
+    if (days < 0) return 'Expired';
+    if (days <= 30) return '≤30 days';
+    if (days <= 60) return '≤60 days';
+    if (days <= 90) return '≤90 days';
+    return '>90 days';
+  },
+
+  getContractorLeaveBalance: (cid) => {
+    const c = VMP.getContractor(cid);
+    return c?.leave_balance || { annual: 0, sick: 0, personal: 0 };
+  },
+
   getPendingApprovals: (roleCode) => {
     const roleMap = { taq: 'TAQ', hr: 'HR Ops', finance: 'Finance', manager: "Contractor's Manager", vendor: 'Vendor Side Manager' };
     const roleName = roleMap[roleCode];
@@ -408,14 +538,23 @@ const VMP = {
       'Not Started': 'badge-draft', 'Service Confirmation': 'badge-pending', 'Reconciliation Exception': 'badge-blocked',
       'Approved & Eligible for Payment': 'badge-approved', 'Good Standing': 'badge-active',
       'Trusted': 'badge-approved', 'At Risk': 'badge-rejected', 'Needs Improvement': 'badge-pending',
-      'Eligible': 'badge-approved', 'Missing': 'badge-blocked', 'Ready for Batch': 'badge-active'
+      'Eligible': 'badge-approved', 'Missing': 'badge-blocked', 'Ready for Batch': 'badge-active',
+      'SOW Validation': 'badge-pending', 'TA Approval': 'badge-pending', 'Finance Processing': 'badge-active',
+      'Validated': 'badge-approved', 'Disputed': 'badge-rejected', 'Disbursed': 'badge-paid',
+      'Ending Soon': 'badge-pending', 'Processing': 'badge-active', 'Withdrawn': 'badge-draft',
+      'Not Started': 'badge-draft',
+      'Awaiting Supervisor': 'badge-pending', 'Supervisor Approved': 'badge-approved', 'HR Approved': 'badge-approved',
+      'Awaiting HR': 'badge-pending', 'In Payment Batch': 'badge-active', 'Submitted': 'badge-active',
+      'Finance Reviewed': 'badge-approved', 'Expired': 'badge-rejected', 'Renewal Due': 'badge-pending',
+      '≤30 days': 'badge-rejected', '≤60 days': 'badge-blocked', '≤90 days': 'badge-pending', '>90 days': 'badge-approved'
     };
     return map[status] || 'badge-draft';
   },
 
   formatCurrency: (amount, currency = 'INR') => {
-    if (currency === 'INR') return '₹' + amount.toLocaleString('en-IN');
-    return '$' + amount.toLocaleString('en-US');
+    if (currency === 'INR') return '₹' + amount.toLocaleString('en-IN') + ' INR';
+    if (currency === 'USD') return '$' + amount.toLocaleString('en-US') + ' USD';
+    return currency + ' ' + amount.toLocaleString('en-US');
   },
 
   formatDate: (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
@@ -437,9 +576,74 @@ const VMP = {
       old_value, new_value, performed_by: VMP.currentUser?.id || 'system',
       performed_at: new Date().toISOString().slice(0, 16).replace('T', ' ')
     });
+    VMP._lastAudit = { entity_type, entity_id, action };
   },
 
-  showToast: (msg) => {
+  /** Map entity type (+ optional id) to a deep-link hash path for notification clicks. */
+  navForEntity: (entity_type, entity_id) => {
+    const map = {
+      'Timesheet': 'timesheets/review',
+      'Contractor Rate': 'admin/approvals',
+      'Rate Card': 'finance/rate-cards',
+      'Vendor Document': 'vendors/compliance',
+      'Document': 'shared/documents',
+      'Reporting Anomaly': 'reports/anomalies',
+      'MFR': 'taq/mfr',
+      'Invoice': entity_id ? `invoices/detail?id=${entity_id}` : 'invoices/register',
+      'Vendor Payment': entity_id ? `invoices/detail?id=${entity_id}` : 'vendor/invoices',
+      'Candidate': 'hr/candidates',
+      'Interview': 'hr/interviews',
+      'Leave': 'contractor/leave',
+      'Performance Concern': 'hr/performance-concerns',
+      'Assignment': 'assignments/list',
+      'Assignment Transfer': 'assignments/transfer',
+      'Vendor': 'vendors/list',
+      'Contractor': entity_id ? `contractors/profile?id=${entity_id}` : 'contractors/list',
+      'Finance Batch': entity_id ? `finance/batch-detail?id=${entity_id}` : 'finance/batches',
+      'Approval': 'admin/approvals'
+    };
+    if (entity_type === 'Timesheet' && VMP.currentRole === 'manager') return 'manager/timesheets';
+    if (entity_type === 'Timesheet' && VMP.currentRole === 'contractor') return 'contractor/timesheet';
+    if (entity_type === 'Timesheet' && VMP.currentRole === 'finance') return 'finance/timesheet-review';
+    if (entity_type === 'Invoice' && VMP.currentRole === 'vendor') {
+      return entity_id ? `invoices/detail?id=${entity_id}` : 'invoices/register';
+    }
+    return map[entity_type] || null;
+  },
+
+  unreadNotificationCount: () => VMP_DATA.notifications.filter(n => !n.read).length,
+
+  addNotification: (event, opts = {}) => {
+    const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const entity_type = opts.entity_type || null;
+    const entity_id = opts.entity_id || null;
+    const currentPath = (location.hash || '').replace(/^#/, '') || (NAV_CONFIG?.[VMP.currentRole]?.dashboard) || 'dashboard/main';
+    const nav = opts.nav || VMP.navForEntity(entity_type, entity_id) || currentPath;
+    VMP_DATA.notifications.unshift({
+      id: 'n' + Date.now(),
+      recipient_user_id: opts.recipient_user_id || VMP.currentUser?.id || null,
+      event,
+      entity_type: entity_type || 'Activity',
+      entity_id: entity_id || '—',
+      channel: 'In-App',
+      status: 'Sent',
+      sent_at: now,
+      nav,
+      read: false
+    });
+    if (typeof NotifUI !== 'undefined') NotifUI.refresh();
+    else VMP.updateNotifBadge();
+  },
+
+  updateNotifBadge: () => {
+    const el = document.getElementById('notif-count') || document.querySelector('.notif-count');
+    if (!el) return;
+    const count = VMP.unreadNotificationCount();
+    el.textContent = count > 99 ? '99+' : String(count);
+    el.style.display = count > 0 ? 'flex' : 'none';
+  },
+
+  showToast: (msg, opts) => {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
     const t = document.createElement('div');
@@ -447,6 +651,16 @@ const VMP = {
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
+    // Mirror triggered actions into the notification bar (skip if opts.silent)
+    if (!opts || opts.silent !== true) {
+      const last = VMP._lastAudit || {};
+      VMP.addNotification(msg, {
+        entity_type: opts?.entity_type || last.entity_type,
+        entity_id: opts?.entity_id || last.entity_id,
+        nav: opts?.nav,
+        recipient_user_id: opts?.recipient_user_id
+      });
+    }
   },
 
   currentRole: null,

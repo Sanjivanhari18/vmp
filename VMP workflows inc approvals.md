@@ -1,6 +1,6 @@
 # Primary Workflows
 
-V1 scope: foundational platform and operational spine (vendor → contractor → assignment → timesheet → invoice approval → pay). Vendor agreement e-sign (SLA, SOW, NDA, MSA via DocuSign), contractor performance concern flagging, and quarterly contractor ratings are in scope. Hiring orchestration beyond MRF intake, bulk import, and contractor offer e-sign are deferred to `FUTURE-WORKFLOWS.md`.
+V1 scope: foundational platform and operational spine (vendor → contractor → assignment → timesheet → invoice approval → pay). Vendor agreement e-sign (SLA, SOW, NDA, MSA via DocuSign), contractor performance concern flagging, and quarterly contractor ratings are in scope. Hiring orchestration beyond MFR intake, bulk import, and contractor offer e-sign are deferred to `FUTURE-WORKFLOWS.md`.
 
 ## How to read these diagrams
 
@@ -42,7 +42,7 @@ flowchart TD
 | Platform | User & Role Management · Central Approval Queue · Audit Log & Notifications · Document Repository |
 | Master Data | Vendor Registration, Onboarding & Compliance · Rate Card Lifecycle · Holiday Calendar Management |
 | People | Contractor Onboarding & Activation · Project Assignment · Assignment Transfer · Contractor Exit / Deboarding |
-| Operations | Manpower Request (MRF) Intake · Contractor Leave Request · Timesheet Submission & Confirmation · Reporting Anomaly Detection & Resolution · Contractor Performance Concern & Work Verification · Contractor Quarterly Performance Rating |
+| Operations | Manpower Request (MFR) Intake · Contractor Leave Request · Timesheet Submission & Confirmation · Reporting Anomaly Detection & Resolution · Contractor Performance Concern & Work Verification · Contractor Quarterly Performance Rating |
 | Money | Contractor Rate Lifecycle · Finance Payment Batch · Invoice Approval · Invoice Payment & Settlement |
 
 ---
@@ -140,7 +140,7 @@ flowchart TD
   class s1,s2,s3,s4,s5 action
 ```
 
-_Routing: Vendor → Finance · Rate Card → Finance · Contractor Rate → Finance · Transfer → HR · MRF → TAQ · Invoice → Project Manager / Finance_
+_Routing: Vendor → Finance · Rate Card → Finance · Contractor Rate → Finance · Transfer → HR · MFR → TAQ · Invoice → Project Manager / Finance_
 
 ---
 
@@ -464,7 +464,7 @@ flowchart TD
   a1["HR"]
   s1(("Enter Basic Info"))
 
-  c2["☁ NEEDED<br/>• Active vendor and approved project/MRF<br/>• Reporting manager, role, location<br/>• Assignment dates<br/><br/>✓ CHECKED BY<br/>Project Manager and HR Lead"]
+  c2["☁ NEEDED<br/>• Active vendor and approved project/MFR<br/>• Reporting manager, role, location<br/>• Assignment dates<br/><br/>✓ CHECKED BY<br/>Project Manager and HR Lead"]
   a2["HR"]
   s2(("Select Vendor, Project & Manager"))
 
@@ -549,7 +549,7 @@ flowchart TD
   a7["Contractor"]
   s7(("Sign Offer"))
 
-  c8["☁ NEEDED<br/>• Project name and active project<br/>• Reporting manager, role, allocation, location<br/>• Start/end dates and FTE conversion flag<br/>• Approved MRF/position<br/><br/>✓ CHECKED BY<br/>Project Manager and HR Lead"]
+  c8["☁ NEEDED<br/>• Project name and active project<br/>• Reporting manager, role, allocation, location<br/>• Start/end dates and FTE conversion flag<br/>• Approved MFR/position<br/><br/>✓ CHECKED BY<br/>Project Manager and HR Lead"]
   a8["HR"]
   s8(("Create Assignment (Draft/Pending)"))
 
@@ -638,7 +638,7 @@ flowchart TD
   a1["HR"]
   s1(("Select Contractor"))
 
-  c2["☁ NEEDED<br/>• Active project and approved MRF/position<br/>• Role, work location, assignment need<br/><br/>✓ CHECKED BY<br/>Project Manager / Program Manager"]
+  c2["☁ NEEDED<br/>• Active project and approved MFR/position<br/>• Role, work location, assignment need<br/><br/>✓ CHECKED BY<br/>Project Manager / Program Manager"]
   a2["HR"]
   s2(("Assign to Project"))
 
@@ -822,7 +822,7 @@ flowchart TD
 
 ## Operations
 
-### Manpower Request (MRF) Intake
+### Manpower Request (MFR) Intake
 
 ```mermaid
 flowchart TD
@@ -832,23 +832,23 @@ flowchart TD
 
   c1["☁ NEEDED<br/>• Project/client and business justification<br/>• Role/title and mandatory/preferred skills<br/>• Experience/grade and headcount<br/>• Location/work mode and engagement type<br/>• Start date, duration/end date, urgency<br/>• Reporting manager and cost centre<br/>• Currency, pay-rate range, bill-rate/budget ceiling<br/>• Rate unit, overtime expectation<br/>• Replacement or new demand<br/><br/>✓ CHECKED BY<br/>Project / Program Manager"]
   a1["Manager"]
-  s1(("Draft MRF"))
+  s1(("Draft MFR"))
 
-  c2["☁ NEEDED<br/>• Complete MRF<br/>• Project budget and resource plan<br/>• Rate benchmark and delivery timeline<br/><br/>✓ CHECKED BY<br/>PMO / Program Manager and Finance"]
+  c2["☁ NEEDED<br/>• Complete MFR<br/>• Project budget and resource plan<br/>• Rate benchmark and delivery timeline<br/><br/>✓ CHECKED BY<br/>PMO / Program Manager and Finance"]
   a2["Manager"]
-  s2(("Submit MRF for Approval"))
+  s2(("Submit MFR for Approval"))
 
   c3["☁ NEEDED<br/>• Approved project need and budget code<br/>• Rate range, duration, headcount<br/>• Exception justification if any<br/><br/>✓ CHECKED BY<br/>Business Unit Head and Finance Approver"]
   a3["Business / Finance"]
-  s3(("Approve or Reject MRF"))
+  s3(("Approve or Reject MFR"))
 
-  c4["☁ NEEDED<br/>• Approved MRF<br/>• Complete role/skills criteria<br/>• Feasible rate range and target date<br/>• Sourcing constraints<br/><br/>✓ CHECKED BY<br/>TAQ Lead"]
+  c4["☁ NEEDED<br/>• Approved MFR<br/>• Complete role/skills criteria<br/>• Feasible rate range and target date<br/>• Sourcing constraints<br/><br/>✓ CHECKED BY<br/>TAQ Lead"]
   a4["TAQ"]
-  s4(("Receive & Review MRF"))
+  s4(("Receive & Review MFR"))
 
-  c5["☁ NEEDED<br/>• Approved MRF ID/version<br/>• Sourcing owner and vendor/channel plan<br/>• SLA and screening criteria<br/><br/>✓ CHECKED BY<br/>TAQ Lead / Hiring Manager"]
+  c5["☁ NEEDED<br/>• Approved MFR ID/version<br/>• Sourcing owner and vendor/channel plan<br/>• SLA and screening criteria<br/><br/>✓ CHECKED BY<br/>TAQ Lead / Hiring Manager"]
   a5["TAQ"]
-  s5(("Convert MRF to Job Order"))
+  s5(("Convert MFR to Job Order"))
 
   c6["☁ NEEDED<br/>• Job order and approved headcount<br/>• Role, skills, pay-rate range<br/>• Project, dates, status<br/><br/>✓ CHECKED BY<br/>TAQ Lead and Project Manager"]
   a6["TAQ"]

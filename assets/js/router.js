@@ -7,10 +7,15 @@ const NAV_CONFIG = {
         { path: 'dashboard/taq', label: 'Orchestration Dashboard' }
       ]},
       { label: 'Hiring Orchestration', items: [
-        { path: 'taq/mrf', label: 'MRF Intake' },
+        { path: 'taq/mfr', label: 'MFR Intake' },
         { path: 'taq/job-orders', label: 'Post Positions to Vendors' },
         { path: 'taq/candidate-routing', label: 'Route Profiles to Manager', badge: 'pendingCandidateRouting' },
         { path: 'taq/pipeline', label: 'End-to-End Pipeline View' }
+      ]},
+      { label: 'Invoice Management', items: [
+        { path: 'invoices/register', label: 'Invoice Register' },
+        { path: 'invoices/ta-approval', label: 'Invoice Approvals (TA)', badge: 'pendingTaInvoiceApproval' },
+        { path: 'invoices/batches', label: 'Payment Batches' }
       ]},
       { label: 'Master Data', items: [
         { path: 'positions/list', label: 'Open Positions' },
@@ -18,6 +23,9 @@ const NAV_CONFIG = {
         { path: 'vendors/list', label: 'Vendors' },
         { path: 'projects/list', label: 'Projects' },
         { path: 'import/upload', label: 'Data Import' }
+      ]},
+      { label: 'Documents', items: [
+        { path: 'shared/documents', label: 'Document Repository' }
       ]},
       { label: 'System Admin', items: [
         { path: 'admin/users', label: 'User Management' },
@@ -33,7 +41,6 @@ const NAV_CONFIG = {
     ],
     footer: [
       { path: 'profile', label: 'My Profile' },
-      { path: 'shared/documents', label: 'Document Repository' },
       { path: 'system-diagram', label: 'System Diagram' }
     ]
   },
@@ -59,6 +66,12 @@ const NAV_CONFIG = {
         { path: 'contractors/deboarding', label: 'Deboarding / Exit' },
         { path: 'bgv/tracker', label: 'BGV Tracker' },
         { path: 'hr/performance-concerns', label: 'Performance Concerns', badge: 'pendingConcerns' }
+      ]},
+      { label: 'Timesheets & Invoices', items: [
+        { path: 'timesheets/upload', label: 'Timesheet Upload' },
+        { path: 'timesheets/review', label: 'Timesheet Review & Approval', badge: 'pendingHrTimesheets' },
+        { path: 'invoices/validation', label: 'Invoices Awaiting SOW Validation', badge: 'pendingSowValidation' },
+        { path: 'invoices/register', label: 'Invoice Register' }
       ]},
       { label: 'Leave & Assignments', items: [
         { path: 'leave/management', label: 'Leave Management' },
@@ -90,15 +103,14 @@ const NAV_CONFIG = {
         { path: 'finance/rate-cards', label: 'Rate Card Management' }
       ]},
       { label: 'Timesheets & Payment', items: [
-        { path: 'timesheets/upload', label: 'Timesheet Upload' },
-        { path: 'timesheets/review', label: 'Timesheet Review' },
+        { path: 'finance/timesheet-review', label: 'Timesheet Review (Final Check)' },
         { path: 'finance/batches', label: 'Finance Payment Batches' }
       ]},
-      { label: 'Invoicing', items: [
-        { path: 'finance/invoices', label: 'Invoice Management' },
-        { path: 'finance/invoice-upload', label: 'Invoice Upload' },
+      { label: 'Invoice Management', items: [
+        { path: 'invoices/register', label: 'Invoice Register' },
+        { path: 'invoices/batches', label: 'Payment Batches' },
         { path: 'finance/invoice-reconcile', label: 'Reconciliation Review' },
-        { path: 'finance/invoice-approval', label: 'Invoice Approval', badge: 'pendingInvoiceApprovals' },
+        { path: 'finance/invoice-approval', label: 'Finance Processing', badge: 'pendingInvoiceApprovals' },
         { path: 'finance/invoice-payment', label: 'Payment & Settlement' }
       ]},
       { label: 'Reports & Controls', items: [
@@ -106,7 +118,8 @@ const NAV_CONFIG = {
         { path: 'reports/anomalies', label: 'Anomaly Report' },
         { path: 'reports/operational', label: 'Operational Reports' },
         { path: 'admin/approvals', label: 'Pending Approvals', badge: 'pendingApprovals' },
-        { path: 'admin/audit', label: 'Audit Log' }
+        { path: 'admin/audit', label: 'Audit Log' },
+        { path: 'shared/documents', label: 'Document Repository' }
       ]}
     ],
     footer: [
@@ -126,7 +139,7 @@ const NAV_CONFIG = {
         { path: 'admin/approvals', label: 'Pending Approvals', badge: 'pendingApprovals' }
       ]},
       { label: 'Hiring & Team', items: [
-        { path: 'manager/mrf', label: 'Manpower Request (MRF)' },
+        { path: 'manager/mfr', label: 'Manpower Request (MFR)' },
         { path: 'contractors/list', label: 'My Contractors' },
         { path: 'manager/performance', label: 'Quarterly Performance Ratings' },
         { path: 'manager/performance-flag', label: 'Flag Performance Concern', badge: 'myOpenConcerns' }
@@ -134,6 +147,9 @@ const NAV_CONFIG = {
       { label: 'Assignments', items: [
         { path: 'assignments/list', label: 'View Assignments' },
         { path: 'assignments/transfer', label: 'Assignment Transfer' }
+      ]},
+      { label: 'Documents', items: [
+        { path: 'shared/documents', label: 'Document Repository' }
       ]}
     ],
     footer: [
@@ -147,6 +163,7 @@ const NAV_CONFIG = {
         { path: 'dashboard/contractor', label: 'Home' },
         { path: 'contractor/timesheet', label: 'Timesheet Confirmation' },
         { path: 'contractor/documents', label: 'Upload Documents', badge: 'pendingDocs' },
+        { path: 'shared/documents', label: 'Document Repository' },
         { path: 'contractor/leave', label: 'Request Leave' }
       ]}
     ],
@@ -169,8 +186,13 @@ const NAV_CONFIG = {
         { path: 'vendor/onboarding', label: 'Onboarding / Offboarding' },
         { path: 'vendor/sow-compliance', label: 'SOW Compliance' }
       ]},
-      { label: 'Payments & Reporting', items: [
-        { path: 'vendor/invoices', label: 'Payment Approval', badge: 'pendingVendorInvoices' },
+      { label: 'Invoicing & Payments', items: [
+        { path: 'invoices/raise', label: 'Raise Invoice' },
+        { path: 'invoices/register', label: 'My Invoices' },
+        { path: 'vendor/invoices', label: 'Payment Approval', badge: 'pendingVendorInvoices' }
+      ]},
+      { label: 'Documents & Reporting', items: [
+        { path: 'shared/documents', label: 'Document Repository' },
         { path: 'vendor/performance', label: 'Performance & Deliverables' },
         { path: 'vendor/reports', label: 'Vendor Reports' }
       ]}
@@ -203,7 +225,12 @@ const NAV_BADGES = {
   pendingHrCandidates: () => VMP_DATA.candidates.filter(c => ['Manager Selected', 'Interview Scheduled', 'Interview Complete', 'Offer Sent'].includes(c.stage)).length,
   pendingConcerns: () => (VMP_DATA.performanceConcerns || []).filter(p => p.status === 'Under Investigation' || p.status === 'Flagged').length,
   myOpenConcerns: () => (VMP_DATA.performanceConcerns || []).filter(p => p.manager_id === 'u4' && (p.status === 'Under Investigation' || p.status === 'Flagged')).length,
-  pendingInvoiceApprovals: () => VMP_DATA.invoices.filter(i => i.approval_stage && i.approval_stage !== 'Approved & Eligible for Payment' && i.reconciliation_status !== 'Blocked').length
+  pendingInvoiceApprovals: () => VMP_DATA.invoices.filter(i => i.approval_stage && i.approval_stage !== 'Approved & Eligible for Payment' && i.reconciliation_status !== 'Blocked').length,
+  pendingSowValidation: () => VMP_DATA.invoices.filter(i => i.sow_validation_status === 'Pending').length,
+  pendingTaInvoiceApproval: () => VMP_DATA.invoices.filter(i =>
+    i.ta_approval_status === 'Pending' && i.sow_validation_status === 'Validated' && i.invoice_stage !== 'Disputed'
+  ).length,
+  pendingHrTimesheets: () => VMP_DATA.timesheets.filter(t => t.manager_approval_status === 'Supervisor Approved' && t.hr_approval_status !== 'HR Approved').length
 };
 
 function getRoleNavPaths(role) {
@@ -212,7 +239,7 @@ function getRoleNavPaths(role) {
   const paths = [];
   nav.sections.forEach(s => s.items.forEach(i => paths.push(i.path)));
   (nav.footer || []).forEach(i => paths.push(i.path));
-  paths.push('profile', 'contractors/profile', 'vendors/detail', 'finance/batch-detail', 'finance/rate-card-detail', 'finance/invoice-reconcile', 'admin/approval-detail', 'rates/history');
+  paths.push('profile', 'contractors/profile', 'vendors/detail', 'finance/batch-detail', 'finance/rate-card-detail', 'finance/invoice-reconcile', 'finance/invoice-approval', 'finance/invoices', 'finance/invoice-upload', 'admin/approval-detail', 'rates/history', 'invoices/detail');
   return paths;
 }
 
@@ -249,14 +276,17 @@ const SCREEN_TITLES = {
   'finance/rate-card-detail': 'Rate Card Detail', 'finance/reports': 'Financial Reports',
   'admin/approval-detail': 'Approval Detail', 'reports/anomalies': 'Reporting Anomaly Report',
   'reports/operational': 'Operational Reports', 'import/upload': 'Data Import', 'import/errors': 'Import Error Review',
-  'taq/mrf': 'MRF Intake', 'taq/job-orders': 'Post Positions to Vendors',
+  'taq/mfr': 'MFR Intake', 'taq/job-orders': 'Post Positions to Vendors',
   'taq/candidate-routing': 'Route Profiles to Manager', 'taq/pipeline': 'Hiring Orchestration View',
   'hr/candidates': 'HR Candidate Pipeline', 'hr/interviews': 'Interview Scheduling',
   'manager/candidate-review': 'Candidate Profile Review',
   'manager/timesheets': 'Timesheet Confirmation', 'manager/leave': 'Leave Approval',
-  'manager/mrf': 'Manpower Request', 'manager/performance': 'Quarterly Performance Rating',
+  'manager/mfr': 'Manpower Request', 'manager/performance': 'Quarterly Performance Rating',
   'manager/performance-flag': 'Flag Performance Concern', 'hr/performance-concerns': 'Performance Concern & Work Verification',
-  'finance/invoice-approval': 'Invoice Approval', 'finance/invoice-payment': 'Invoice Payment & Settlement',
+  'finance/invoice-approval': 'Invoice Finance Processing', 'finance/invoice-payment': 'Invoice Payment & Settlement',
+  'finance/timesheet-review': 'Timesheet Review (Final Check)',
+  'invoices/register': 'Invoice Register', 'invoices/detail': 'Invoice Detail', 'invoices/batches': 'Invoice Payment Batches',
+  'invoices/validation': 'Invoices Awaiting SOW Validation', 'invoices/ta-approval': 'Invoice Approvals (TA)', 'invoices/raise': 'Raise Invoice',
   'contractor/timesheet': 'Timesheet Confirmation', 'contractor/documents': 'Document Upload', 'contractor/leave': 'Leave Request',
   'vendor/job-orders': 'Job Orders & Demands', 'vendor/candidates': 'Submit Candidates', 'vendor/contractors': 'My Contractors',
   'vendor/onboarding': 'Onboarding / Offboarding', 'vendor/sow-compliance': 'SOW Compliance', 'vendor/invoices': 'Payment Approval',
@@ -352,8 +382,8 @@ const Router = {
     if (bc) bc.textContent = `VMP › ${NAV_CONFIG[VMP.currentRole]?.label || ''} › ${title}`;
     const badge = document.querySelector('.role-badge');
     if (badge) { badge.className = `role-badge ${VMP.currentRole}`; badge.textContent = NAV_CONFIG[VMP.currentRole]?.label; }
-    const notif = document.querySelector('.notif-count');
-    if (notif) notif.textContent = VMP_DATA.notifications.length;
+    if (typeof NotifUI !== 'undefined') NotifUI.refresh();
+    else VMP.updateNotifBadge();
   },
 
   highlightNav(path) {
@@ -404,8 +434,10 @@ const Router = {
         e.stopPropagation();
         const id = btn.dataset.id;
         const type = btn.dataset.type;
-        MockActions.reject(id, type);
-        VMP.showToast(type ? type + ' rejected' : 'Rejected');
+        const reason = window.prompt('Add a note explaining the rejection (optional):', '');
+        if (reason === null) return; // cancelled
+        MockActions.reject(id, type, reason);
+        VMP.showToast((type ? type + ' rejected' : 'Rejected') + (reason ? ' — note recorded' : ''));
         MockActions.refresh();
       });
     });
@@ -434,6 +466,34 @@ const Router = {
         e.preventDefault();
         e.stopPropagation();
         MockActions.advanceSettlement(btn.dataset.id);
+      });
+    });
+
+    // Generic id-based mock actions (invoice module, timesheets, leave, docs, SOW)
+    const simpleActions = {
+      'validate-sow': (btn) => MockActions.validateSow(btn.dataset.id),
+      'dispute-invoice': (btn) => MockActions.disputeInvoice(btn.dataset.id),
+      'ta-approve-invoice': (btn) => MockActions.taApproveInvoice(btn.dataset.id),
+      'process-invoice': (btn) => MockActions.processInvoice(btn.dataset.id),
+      'supervisor-approve-ts': (btn) => MockActions.supervisorApproveTimesheet(btn.dataset.id),
+      'hr-approve-ts': (btn) => MockActions.hrApproveTimesheet(btn.dataset.id),
+      'cancel-leave': (btn) => MockActions.cancelLeave(btn.dataset.id),
+      'send-doc-reminder': (btn) => MockActions.sendDocReminder(btn.dataset.id),
+      'reupload-doc': (btn) => MockActions.reuploadDoc(btn.dataset.id),
+      'track-enddate': (btn) => MockActions.trackEndDate(btn.dataset.id),
+      'renew-sow': (btn) => MockActions.renewSow(btn.dataset.id),
+      'start-exit-sow': (btn) => MockActions.startExitSow(btn.dataset.id),
+      'repo-add-doc': () => MockActions.addRepoDocument(),
+      'open-doc': (btn) => VMP.showToast('Opening document: ' + (btn.dataset.id || 'document'), { silent: true })
+    };
+    Object.keys(simpleActions).forEach(action => {
+      document.querySelectorAll(`[data-action="${action}"]`).forEach(btn => {
+        btn.type = 'button';
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          simpleActions[action](btn);
+        });
       });
     });
 
@@ -480,7 +540,7 @@ const Router = {
         e.stopPropagation();
         const candidateId = btn.dataset.candidate || Router.getQueryParam('candidate');
         if (!candidateId) {
-          VMP.showToast('Select a candidate to schedule');
+          VMP.showToast('Select a candidate to schedule', { silent: true });
           return;
         }
         MockActions.scheduleInterview(candidateId, MockActions.readForm(btn));

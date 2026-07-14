@@ -7,7 +7,28 @@
   <link rel="stylesheet" href="assets/css/vmp.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div class="login-page" id="login-screen">
+    <div class="login-card">
+      <div class="login-brand">VMP Portal</div>
+      <h1>Sign in</h1>
+      <p class="subtitle">Vendor Management Platform — use your company account to continue.</p>
+      <form id="login-form" novalidate>
+        <div class="login-field">
+          <label for="login-email">Company Email</label>
+          <input type="email" id="login-email" placeholder="you@company.com" autocomplete="username" value="admin@company.com">
+        </div>
+        <div class="login-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" value="demo1234">
+        </div>
+        <div class="login-error" id="login-error"></div>
+        <button type="submit" class="btn btn-primary login-submit">Sign In</button>
+      </form>
+      <p class="login-note">Mock login for the wireframe — any valid company email and a non-empty password will sign you in. You can switch between roles once inside.</p>
+    </div>
+  </div>
+
+  <div class="app-shell" id="app-shell" style="display:none">
     <aside class="sidebar role-taq" id="sidebar">
       <div class="sidebar-brand">
         VMP Portal
@@ -35,7 +56,20 @@
             <option value="vendor">Vendor Side Manager</option>
           </select>
           <span class="role-badge taq" id="role-badge">TAQ Orchestrator / System Admin</span>
-          <div class="notif-bell" title="Notifications">🔔<span class="notif-count">5</span></div>
+          <div class="notif-wrap" id="notif-wrap">
+            <button type="button" class="notif-bell" id="notif-bell" title="Notifications" aria-label="Notifications" aria-expanded="false">
+              🔔<span class="notif-count" id="notif-count">5</span>
+            </button>
+            <div class="notif-panel" id="notif-panel" hidden>
+              <div class="notif-panel-header">
+                <strong>Notifications</strong>
+                <button type="button" class="btn btn-sm btn-secondary" id="notif-mark-all">Mark all read</button>
+              </div>
+              <div class="notif-panel-list" id="notif-panel-list"></div>
+            </div>
+          </div>
+          <span id="current-user-email" style="font-size:.8rem;color:var(--muted);white-space:nowrap"></span>
+          <button id="logout-btn" class="btn btn-secondary btn-sm" type="button">Log out</button>
         </div>
       </header>
       <main class="content" id="screen-content"></main>

@@ -2,7 +2,7 @@
 
 Plain-text version of all workflows in `PRIMARY-WORKFLOWS.md`. Each step is written as **Actor - Action**, linked with `->`. For the visual version (cloud → square box → circle), open `PRIMARY-WORKFLOWS.md` and use Markdown preview.
 
-V1 scope: foundational platform and operational spine (vendor → contractor → assignment → timesheet → invoice approval → pay). Vendor agreement e-sign (SLA, SOW, NDA, MSA via DocuSign), contractor performance concern flagging, and quarterly contractor ratings are in scope. Hiring orchestration beyond MRF intake, bulk import, and contractor offer e-sign are deferred to `FUTURE-WORKFLOWS.md`.
+V1 scope: foundational platform and operational spine (vendor → contractor → assignment → timesheet → invoice approval → pay). Vendor agreement e-sign (SLA, SOW, NDA, MSA via DocuSign), contractor performance concern flagging, and quarterly contractor ratings are in scope. Hiring orchestration beyond MFR intake, bulk import, and contractor offer e-sign are deferred to `FUTURE-WORKFLOWS.md`.
 
 ---
 
@@ -18,7 +18,7 @@ TAQ / System Admin - Create User -> TAQ / System Admin - Assign Role & Permissio
 
 Requester - Submit Entity for Approval -> System - Route to Approver Role -> Approver - Review Request -> Approver - Approve or Reject -> System - Record Audit Log Entry
 
-_Routing: Vendor → Finance · Rate Card → Finance · Contractor Rate → Finance · Transfer → HR · MRF → TAQ · Invoice → Project Manager / Finance_
+_Routing: Vendor → Finance · Rate Card → Finance · Contractor Rate → Finance · Transfer → HR · MFR → TAQ · Invoice → Project Manager / Finance_
 
 ---
 
@@ -91,9 +91,9 @@ System / HR - Trigger End Date -> Vendor - Initiate Exit Coordination -> HR - Ru
 
 ## Operations
 
-### Manpower Request (MRF) Intake
+### Manpower Request (MFR) Intake
 
-Manager - Draft MRF -> Manager - Submit MRF for Approval -> Business / Finance - Approve or Reject MRF -> TAQ - Receive & Review MRF -> TAQ - Convert MRF to Job Order -> TAQ - Create Open Position
+Manager - Draft MFR -> Manager - Submit MFR for Approval -> Business / Finance - Approve or Reject MFR -> TAQ - Receive & Review MFR -> TAQ - Convert MFR to Job Order -> TAQ - Create Open Position
 
 _V1 note: Open positions are for planning and tracking demand. Contractors enter the system via Contractor Onboarding (HR- or vendor-initiated), not through the full hiring orchestration pipeline._
 

@@ -6,13 +6,13 @@ Deferred enhancements beyond V1 primary scope. These extend hiring orchestration
 
 ### End-to-End Hiring Orchestration (Hire to Pay)
 
-Manager - Raise Manpower Request (MRF) -> TAQ - MRF Intake & Review -> TAQ - Create Open Position -> TAQ - Post Job Order to Vendor -> Vendor - Shortlist from Bench -> Vendor - Submit Candidate Profiles to TAQ -> TAQ - Route Profiles to Manager -> Manager - Review Candidate Profile -> Manager - Select Candidate -> HR - Schedule Interview -> HR - Conduct Interview -> HR - Send Offer -> HR - Start Contractor Onboarding -> Finance - Approve Contractor Rate -> HR - Create Assignment -> Contractor - Upload Timesheet & Confirm Hours -> System - Record Confirmation (Manager CC'd) -> Finance - Generate Payment Batch -> Finance - Upload & Reconcile Invoice -> Vendor - Approve Payment -> Finance - Export Payment
+Manager - Raise Manpower Request (MFR) -> TAQ - MFR Intake & Review -> TAQ - Create Open Position -> TAQ - Post Job Order to Vendor -> Vendor - Shortlist from Bench -> Vendor - Submit Candidate Profiles to TAQ -> TAQ - Route Profiles to Manager -> Manager - Review Candidate Profile -> Manager - Select Candidate -> HR - Schedule Interview -> HR - Conduct Interview -> HR - Send Offer -> HR - Start Contractor Onboarding -> Finance - Approve Contractor Rate -> HR - Create Assignment -> Contractor - Upload Timesheet & Confirm Hours -> System - Record Confirmation (Manager CC'd) -> Finance - Generate Payment Batch -> Finance - Upload & Reconcile Invoice -> Vendor - Approve Payment -> Finance - Export Payment
 
 ---
 
 ### Post Position to Vendor (Job Order)
 
-TAQ - Approve MRF -> TAQ - Create Open Position -> TAQ - Select Approved Vendors -> TAQ - Issue Job Order -> Vendor - Receive Job Order -> Vendor - Shortlist Candidates from Bench -> Vendor - Submit Profiles to TAQ
+TAQ - Approve MFR -> TAQ - Create Open Position -> TAQ - Select Approved Vendors -> TAQ - Issue Job Order -> Vendor - Receive Job Order -> Vendor - Shortlist Candidates from Bench -> Vendor - Submit Profiles to TAQ
 
 ---
 
