@@ -1764,112 +1764,18 @@ const SH = {
     '<div class="form-actions"><button class="btn btn-secondary">Save Draft</button><button class="btn btn-primary">Submit Invoice</button></div>');
   },
 
-  // ---- Finance: final timesheet check (pay rates, dates, anomalies) before vendor pay ----
-  financeTimesheetChecks(t) {
-    const c = VMP.getContractor(t.contractor_id);
-    const a = VMP.getAssignment(t.assignment_id);
-    const rate = VMP.getActiveRate(t.contractor_id) || VMP_DATA.rates.find(r =>
-      r.contractor_id === t.contractor_id && r.approval_status === 'Approved' &&
-      r.effective_from <= t.work_period_end && (!r.effective_to || r.effective_to >= t.work_period_start)
-    );
-    const openAnomalies = VMP_DATA.anomalies.filter(an => an.contractor_id === t.contractor_id && an.status !== 'Resolved');
-    const flags = [];
-    if (!rate) flags.push('Missing / unapproved pay rate');
-    else if (rate.effective_from > t.work_period_start || (rate.effective_to && rate.effective_to < t.work_period_end)) {
-      flags.push('Pay rate outside effective dates');
-    }
-    if (!a) flags.push('Missing assignment');
-    else {
-      if (a.assignment_status !== 'Active') flags.push('Inactive assignment');
-      if (a.start_date && a.start_date > t.work_period_start) flags.push('Hours before assignment start');
-      if (a.end_date && a.end_date < t.work_period_end) flags.push('Hours after assignment end');
-      if (c?.contract_end_date && c.contract_end_date < t.work_period_end) flags.push('Hours past contract end date');
-    }
-    if (t.leave_mismatch) flags.push('Leave mismatch');
-    if (t.holiday_mismatch) flags.push('Holiday mismatch');
-    openAnomalies.forEach(an => flags.push(an.anomaly_type));
-    return {
-      contractor: c,
-      assignment: a,
-      rate,
-      flags,
-      clean: flags.length === 0,
-      payRateLabel: rate ? VMP.formatCurrency(rate.monthly_rate) + '/mo' : (c?.pay_rate ? VMP.formatCurrency(c.pay_rate) + '/mo (engagement)' : '—'),
-      assignDates: a
-        ? `${VMP.formatDate(a.start_date)} – ${a.end_date ? VMP.formatDate(a.end_date) : 'Open'}`
-        : '—'
-    };
-  },
-
+  // ---- Finance: read-only final timesheet check (ownership moved to HR Ops) ----
   renderFinanceTimesheetReview() {
-    const queue = VMP_DATA.timesheets.filter(t =>
-      (t.hr_approval_status === 'HR Approved' || t.manager_approval_status === 'Supervisor Approved' || t.manager_approval_status === 'Approved') &&
-      !['Paid', 'Rejected'].includes(t.reconciliation_status)
+    const ready = VMP_DATA.timesheets.filter(t => t.hr_approval_status === 'HR Approved' || t.reconciliation_status === 'Confirmed' || t.reconciliation_status === 'In Finance Batch' || t.reconciliation_status === 'Paid');
+    const table = UI.table(['Contractor', 'Period', 'Approved Hours', 'Supervisor', 'HR Ops', 'Status'],
+      ready.map(t => `<tr><td>${VMP.getContractor(t.contractor_id)?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${t.approved_hours || t.submitted_hours}h</td><td>${UI.badge('Supervisor Approved')}</td><td>${UI.badge('HR Approved')}</td><td>${UI.badge(t.reconciliation_status)}</td></tr>`),
+      'No HR-approved timesheets awaiting final finance check.'
     );
-    const pending = queue.filter(t => !t.finance_review_status || t.finance_review_status === 'Pending');
-    const cleared = queue.filter(t => t.finance_review_status === 'Cleared for Vendor Pay' || (t.reconciliation_status === 'In Finance Batch' && t.finance_review_status !== 'Blocked — Anomaly'));
-    const blocked = queue.filter(t => t.finance_review_status === 'Blocked — Anomaly');
-
-    const rowFor = (t, mode) => {
-      const chk = SH.financeTimesheetChecks(t);
-      const flagCell = chk.clean
-        ? '<span style="color:green">✓ Rate · Dates · No anomalies</span>'
-        : `<span style="color:#dc2626">${chk.flags.join(' · ')}</span>`;
-      const actions = mode === 'pending'
-        ? `<button class="btn btn-sm btn-success" data-action="finance-clear-ts" data-id="${t.id}" ${chk.clean ? '' : 'title="Clear despite flags"'}>Clear for Vendor Pay</button>
-           <button class="btn btn-sm btn-danger" data-action="finance-block-ts" data-id="${t.id}">Block</button>`
-        : mode === 'blocked'
-          ? `<button class="btn btn-sm btn-success" data-action="finance-clear-ts" data-id="${t.id}">Re-clear</button>`
-          : '—';
-      return `<tr class="${chk.clean ? '' : 'row-blocked'}">
-        <td><span class="entity-link" data-nav="contractors/profile?id=${t.contractor_id}">${chk.contractor?.full_name || t.contractor_id}</span><br><span style="font-size:.75rem;color:var(--muted)">${chk.contractor?.contractor_code || ''}</span></td>
-        <td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td>
-        <td>${chk.payRateLabel}</td>
-        <td style="font-size:.8rem">${chk.assignDates}</td>
-        <td>${t.approved_hours || t.submitted_hours}h</td>
-        <td style="font-size:.8rem">${flagCell}</td>
-        <td>${UI.badge(t.finance_review_status || t.reconciliation_status || 'Pending')}</td>
-        <td>${actions}</td>
-      </tr>`;
-    };
-
-    const cols = ['Contractor', 'Work Period', 'Pay Rate', 'Assignment Dates', 'Hours', 'Rate / Date / Anomaly Check', 'Status', 'Actions'];
-    const pendingTable = UI.table(cols, pending.map(t => rowFor(t, 'pending')), 'No manager-approved timesheets awaiting Finance final check.');
-    const blockedTable = UI.table(cols, blocked.map(t => rowFor(t, 'blocked')), 'No blocked timesheets.');
-    const clearedTable = UI.table(
-      ['Contractor', 'Work Period', 'Pay Rate', 'Hours', 'Status'],
-      cleared.map(t => {
-        const chk = SH.financeTimesheetChecks(t);
-        return `<tr><td>${chk.contractor?.full_name}</td><td>${VMP.formatDate(t.work_period_start)} – ${VMP.formatDate(t.work_period_end)}</td><td>${chk.payRateLabel}</td><td>${t.approved_hours || t.submitted_hours}h</td><td>${UI.badge(t.finance_review_status || t.reconciliation_status)}</td></tr>`;
-      }),
-      'No timesheets cleared for vendor pay yet.'
-    );
-
-    const stats = UI.statsGrid([
-      { value: pending.length, label: 'Awaiting Finance Check', class: pending.length ? 'warning' : '' },
-      { value: blocked.length, label: 'Blocked (Anomaly)', class: blocked.length ? 'danger' : '' },
-      { value: cleared.length, label: 'Cleared for Vendor Pay', class: 'success' },
-      { value: pending.filter(t => !SH.financeTimesheetChecks(t).clean).length, label: 'With Flags', class: 'danger' }
-    ]);
-
-    const checkRules = UI.detailRows([
-      { label: 'Pay rate', value: 'Must match Finance-approved contractor rate / rate card effective for the work period' },
-      { label: 'Dates', value: 'Work period must fall within assignment start/end and contract tenure' },
-      { label: 'Anomalies', value: 'Open reporting anomalies, leave/holiday mismatches, inactive assignment, or missing rate block vendor pay' },
-      { label: 'Outcome', value: 'Clear → payment batch / vendor pay · Block → hold until resolved' }
-    ]);
-
-    return SH.workflowBanner('Timesheet Review (Final Check)', ['Contractor Submits', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Vendor Pay'], 'Finance Reviews',
-      'After the manager approves their contractors’ timesheets, Finance re-checks pay rates, work-period dates, and anomalies before releasing hours to the vendor for payment.',
+    return SH.workflowBanner('Timesheet Review (Final Check)', ['Contractor Submits', 'Supervisor Approves', 'HR Ops Approves', 'Finance Reviews', 'Finance Batch'], 'Finance Reviews',
+      'Ownership moved to HR Ops. Finance only performs a read-only final check that the already-approved timesheet is clean before it feeds into invoicing/payment.',
       [
-        UI.card('Finance Final Check — Pay Rates, Dates & Anomalies',
-          UI.alert('info', 'Hours are already manager-approved. Finance validates commercial data (pay rate, dates) and scans for anomalies, then clears lines for vendor payment or blocks exceptions.') +
-          stats + pendingTable + checkRules),
-        UI.card('Blocked — Resolve Before Vendor Pay',
-          UI.alert('danger', 'Blocked lines stay out of the vendor payment file until Finance re-clears them.') + blockedTable),
-        UI.card('Cleared for Vendor Pay',
-          UI.alert('success', 'Cleared timesheets feed Finance payment batches sent to the vendor.') + clearedTable +
-          '<a href="#finance/batches" class="btn btn-sm btn-primary">Open Payment Batches</a>')
+        UI.card('Finance Final Check (read-only)', UI.alert('info', 'These timesheets are already approved by the supervisor and HR Ops. Finance confirms the batch is clean before payment — no uploading, parsing, or chasing confirmations.') + table),
+        UI.card('Ready for Batch', UI.alert('success', 'Clean timesheets flow into finance payment batches.') + '<a href="#finance/batches" class="btn btn-sm btn-primary">Open Payment Batches</a>')
       ]);
   }
 };

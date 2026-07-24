@@ -250,32 +250,9 @@ const MockActions = {
     if (ts.manager_approval_status !== 'Supervisor Approved') { VMP.showToast('Supervisor must approve first'); return; }
     ts.hr_approval_status = 'HR Approved';
     ts.reconciliation_status = 'Confirmed';
-    ts.finance_review_status = 'Pending';
     ts.approved_hours = ts.submitted_hours;
     VMP.addAuditLog('Timesheet', id, 'HR Ops Approved', 'Supervisor Approved', 'Ready for finance final check');
     VMP.showToast('Timesheet approved by HR Ops — ready for finance review');
-    MockActions.refresh();
-  },
-
-  financeClearTimesheet(id) {
-    const ts = VMP.getTimesheet(id);
-    if (!ts) return;
-    ts.finance_review_status = 'Cleared for Vendor Pay';
-    ts.reconciliation_status = 'Confirmed';
-    VMP.addAuditLog('Timesheet', id, 'Finance Cleared', 'Pending Finance Check', 'Pay rate, dates & anomalies checked — ready for vendor pay');
-    VMP.showToast('Timesheet cleared for vendor payment');
-    MockActions.refresh();
-  },
-
-  financeBlockTimesheet(id) {
-    const ts = VMP.getTimesheet(id);
-    if (!ts) return;
-    const chk = typeof SH !== 'undefined' && SH.financeTimesheetChecks ? SH.financeTimesheetChecks(ts) : null;
-    const reason = chk && chk.flags.length ? chk.flags.join('; ') : 'Finance anomaly hold';
-    ts.finance_review_status = 'Blocked — Anomaly';
-    ts.finance_block_reason = reason;
-    VMP.addAuditLog('Timesheet', id, 'Finance Blocked', 'Pending Finance Check', reason);
-    VMP.showToast('Timesheet blocked — will not go to vendor until cleared');
     MockActions.refresh();
   },
 
@@ -797,9 +774,7 @@ const MockActions = {
     'finance/batches': {
       'Generate Batch'() {
         const id = VMP.nextId('fb', VMP_DATA.financeBatches);
-        const ready = VMP_DATA.timesheets.filter(t =>
-          t.finance_review_status === 'Cleared for Vendor Pay' && !t.batch_id
-        );
+        const ready = VMP_DATA.timesheets.filter(t => t.manager_approval_status === 'Approved' && t.reconciliation_status === 'Manager Approved' && !t.batch_id);
         const lines = ready.slice(0, 3).map(t => {
           const rate = VMP.getActiveRate(t.contractor_id);
           return {
@@ -809,7 +784,7 @@ const MockActions = {
           };
         });
         if (!lines.length) {
-          VMP.showToast('No Finance-cleared timesheets available for batch generation');
+          VMP.showToast('No manager-approved timesheets available for batch generation');
           return;
         }
         lines.forEach(l => { const ts = VMP.getTimesheet(l.timesheet_id); if (ts) { ts.batch_id = id; ts.reconciliation_status = 'In Finance Batch'; } });

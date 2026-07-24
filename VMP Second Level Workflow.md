@@ -40,15 +40,15 @@ Excel / CSV artefacts are marked **[Excel]** below. Formats are typically `.xlsx
 
 ## 5. Timesheet submission and approval
 
-**What happens:** Contractor submits weekly hours (file upload or manual entry). System parses hours and flags leave/holiday mismatches. Reporting manager / supervisor approves their contractors’ timesheets (then HR Ops where applicable). Finance runs a **final check** on pay rates, work-period dates, and anomalies before anything is released for vendor payment.
+**What happens:** Contractor submits weekly hours (file upload or manual entry). System parses hours, flags leave/holiday mismatches, and drives confirmation / approval (supervisor → HR Ops → Finance final check). Confirmed hours become eligible for the payment batch.
 
-**Key outcomes:** Parsed daily hours · manager (and HR Ops) approval · Finance clear/block on rate–date–anomaly checks · hours ready for Finance batch / vendor pay.
+**Key outcomes:** Parsed daily hours · confirmation / approval status · hours ready for Finance batch.
 
 ## 6. Invoice approval
 
-**What happens:** Finance builds a payment batch only from **Finance-cleared** timesheets, validates assignment–rate–manager, and removes blocked lines. Vendor or Finance submits the invoice; system reconciles against the approved batch and PO/SOW; Project Manager confirms services/hours; budget owner and Finance approve (dual approval when policy requires). Cleared batch hours are what the vendor uses to pay contractors.
+**What happens:** Finance builds a payment batch from confirmed / approved timesheets, validates assignment–rate–manager, and removes blocked lines. Vendor or Finance submits the invoice; system reconciles against the approved batch and PO/SOW; Project Manager confirms services/hours; budget owner and Finance approve (dual approval when policy requires).
 
-**Key outcomes:** Approved payment batch · reconciled invoice · invoice marked eligible for payment · vendor payment file from cleared hours.
+**Key outcomes:** Approved payment batch · reconciled invoice · invoice marked eligible for payment.
 
 ## 7. Send to vendor for approval and pays
 
