@@ -250,9 +250,32 @@ const MockActions = {
     if (ts.manager_approval_status !== 'Supervisor Approved') { VMP.showToast('Supervisor must approve first'); return; }
     ts.hr_approval_status = 'HR Approved';
     ts.reconciliation_status = 'Confirmed';
+    ts.finance_review_status = 'Pending';
     ts.approved_hours = ts.submitted_hours;
     VMP.addAuditLog('Timesheet', id, 'HR Ops Approved', 'Supervisor Approved', 'Ready for finance final check');
     VMP.showToast('Timesheet approved by HR Ops — ready for finance review');
+    MockActions.refresh();
+  },
+
+  financeClearTimesheet(id) {
+    const ts = VMP.getTimesheet(id);
+    if (!ts) return;
+    ts.finance_review_status = 'Cleared for Vendor Pay';
+    ts.reconciliation_status = 'Confirmed';
+    VMP.addAuditLog('Timesheet', id, 'Finance Cleared', 'Pending Finance Check', 'Pay rate, dates & anomalies checked — ready for vendor pay');
+    VMP.showToast('Timesheet cleared for vendor payment');
+    MockActions.refresh();
+  },
+
+  financeBlockTimesheet(id) {
+    const ts = VMP.getTimesheet(id);
+    if (!ts) return;
+    const chk = typeof SH !== 'undefined' && SH.financeTimesheetChecks ? SH.financeTimesheetChecks(ts) : null;
+    const reason = chk && chk.flags.length ? chk.flags.join('; ') : 'Finance anomaly hold';
+    ts.finance_review_status = 'Blocked — Anomaly';
+    ts.finance_block_reason = reason;
+    VMP.addAuditLog('Timesheet', id, 'Finance Blocked', 'Pending Finance Check', reason);
+    VMP.showToast('Timesheet blocked — will not go to vendor until cleared');
     MockActions.refresh();
   },
 
@@ -774,7 +797,9 @@ const MockActions = {
     'finance/batches': {
       'Generate Batch'() {
         const id = VMP.nextId('fb', VMP_DATA.financeBatches);
-        const ready = VMP_DATA.timesheets.filter(t => t.manager_approval_status === 'Approved' && t.reconciliation_status === 'Manager Approved' && !t.batch_id);
+        const ready = VMP_DATA.timesheets.filter(t =>
+          t.finance_review_status === 'Cleared for Vendor Pay' && !t.batch_id
+        );
         const lines = ready.slice(0, 3).map(t => {
           const rate = VMP.getActiveRate(t.contractor_id);
           return {
@@ -784,7 +809,7 @@ const MockActions = {
           };
         });
         if (!lines.length) {
-          VMP.showToast('No manager-approved timesheets available for batch generation');
+          VMP.showToast('No Finance-cleared timesheets available for batch generation');
           return;
         }
         lines.forEach(l => { const ts = VMP.getTimesheet(l.timesheet_id); if (ts) { ts.batch_id = id; ts.reconciliation_status = 'In Finance Batch'; } });
@@ -921,6 +946,33 @@ const MockActions = {
           VMP.showToast('MFR converted to job order — open position created');
           MockActions.refresh();
         }
+      },
+      'Post to Vendor'(btn) {
+        const d = MockActions.readForm(btn);
+        const id = VMP.nextId('jo', VMP_DATA.jobOrders);
+        const openPos = VMP_DATA.openPositions.filter(o => o.status !== 'Filled');
+        const posLabel = d['Open Position'] || '';
+        const op = openPos.find(o => posLabel.includes(o.position_title)) || openPos[0];
+        const vendor = VMP_DATA.vendors.find(v => v.vendor_name === d['Vendor']) || VMP_DATA.vendors.find(v => v.status === 'Active');
+        VMP_DATA.jobOrders.unshift({
+          id,
+          open_position_id: op?.id || 'op1',
+          vendor_id: vendor?.id || 'v1',
+          headcount_needed: parseInt(d['Headcount Needed'], 10) || 1,
+          due_date: d['Response Due Date'] || '2025-07-15',
+          candidates_submitted: 0,
+          response_status: 'Pending Response',
+          notes: d['Notes to Vendor'] || ''
+        });
+        VMP.addAuditLog('Job Order', id, 'Posted to Vendor', null, (vendor?.vendor_name || 'Vendor') + ' — ' + (op?.position_title || 'Position'));
+        VMP.showToast('Job order posted to ' + (vendor?.vendor_name || 'vendor'));
+        MockActions.refresh();
+      }
+    },
+
+    'taq/job-orders': {
+      'Post to Vendor'(btn) {
+        MockActions.handlers['taq/mfr']['Post to Vendor'](btn);
       }
     },
 
@@ -947,10 +999,13 @@ const MockActions = {
       }
     },
 
-    'vendor/candidates': {
+    'vendor/job-orders': {
       'Submit to TAQ for Routing'(btn) {
         const d = MockActions.readForm(btn);
-        const jobId = Router.getQueryParam('job') || 'jo4';
+        const jobId = btn.dataset.job
+          || btn.closest('[data-submit-job]')?.dataset.submitJob
+          || Router.getQueryParam('job')
+          || 'jo4';
         const jo = VMP_DATA.jobOrders.find(j => j.id === jobId);
         const vid = VMP.getCurrentVendorId() || 'v1';
         const id = VMP.nextId('can', VMP_DATA.candidates);
@@ -968,6 +1023,12 @@ const MockActions = {
         VMP.addAuditLog('Candidate', id, 'Submitted by Vendor', null, d['Candidate Name']);
         VMP.showToast('Candidate submitted — TAQ will route profile to hiring manager');
         MockActions.refresh();
+      }
+    },
+
+    'vendor/candidates': {
+      'Submit to TAQ for Routing'(btn) {
+        MockActions.handlers['vendor/job-orders']['Submit to TAQ for Routing'](btn);
       }
     },
 

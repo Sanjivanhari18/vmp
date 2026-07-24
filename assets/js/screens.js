@@ -1,4 +1,43 @@
 /** VMP Screen Renderers — all ~55 screens */
+
+/** Sub-nav tab groups linking sibling screens (each tab is a real route) */
+const SUBNAV = {
+  vendors: () => UI.subNav([
+    { path: 'vendors/list', label: 'Vendor List' },
+    { path: 'vendors/compliance', label: 'Compliance Documents' }
+  ]),
+  lifecycle: () => UI.subNav([
+    { path: 'contractors/onboarding', label: 'Onboarding Pipeline' },
+    { path: 'contractors/deboarding', label: 'Deboarding / Exit' },
+    { path: 'bgv/tracker', label: 'BGV Tracker' }
+  ]),
+  timesheets: () => UI.subNav([
+    { path: 'timesheets/review', label: 'Review & Approval' },
+    { path: 'timesheets/upload', label: 'Upload' }
+  ]),
+  leave: () => UI.subNav([
+    { path: 'leave/management', label: 'Leave Management' },
+    { path: 'leave/holidays', label: 'Holiday Calendar' }
+  ]),
+  hrInvoices: () => UI.subNav([
+    { path: 'invoices/register', label: 'Invoice Register' },
+    { path: 'invoices/validation', label: 'Awaiting SOW Validation' }
+  ]),
+  hiring: () => UI.subNav([
+    { path: 'hr/candidates', label: 'Candidate Pipeline' },
+    { path: 'hr/interviews', label: 'Interview Scheduling' }
+  ]),
+  performance: () => UI.subNav([
+    { path: 'manager/performance', label: 'Quarterly Ratings' },
+    { path: 'manager/performance-flag', label: 'Flag Performance Concern' }
+  ]),
+  invoiceOps: () => UI.subNav([
+    { path: 'finance/invoice-approval', label: 'Finance Processing' },
+    { path: 'finance/invoice-payment', label: 'Payment & Settlement' },
+    { path: 'finance/invoice-reconcile', label: 'Reconciliation Review' }
+  ])
+};
+
 const Screens = {
   'not-found': () => UI.card('Screen Not Found', '<p>Use the sidebar to navigate to available screens.</p>'),
 
@@ -9,7 +48,7 @@ const Screens = {
     const activePipeline = VMP_DATA.candidates.filter(c => !['Onboarded', 'Rejected'].includes(c.stage)).length;
     return SH.actorBanner() + UI.statsGrid([
       { value: VMP_DATA.mfrs.filter(m => m.status === 'Raised').length, label: 'MFRs Awaiting Intake', nav: 'taq/mfr', class: 'warning' },
-      { value: pendingJobOrders, label: 'Job Orders Awaiting Vendor', nav: 'taq/job-orders', class: 'warning' },
+      { value: pendingJobOrders, label: 'Job Orders Awaiting Vendor', nav: 'taq/mfr?post=1', class: 'warning' },
       { value: awaitingRouting, label: 'Profiles to Route', nav: 'taq/candidate-routing', class: 'warning' },
       { value: activePipeline, label: 'Pipeline (Monitor Only)', nav: 'taq/pipeline' }
     ]) + UI.card('Orchestration Queue', UI.table(['Candidate','Vendor','Stage','Owner','Action'],
@@ -200,7 +239,8 @@ const Screens = {
   ]),
 
   // ========== VENDORS & PROJECTS ==========
-  'vendors-list': () => UI.toolbar(['<input type="search" placeholder="Search vendors..." class="search-input">','<a href="#vendors/register" class="btn btn-primary btn-sm">+ New Vendor</a>']) +
+  'vendors-list': () => (VMP.currentRole === 'hr' ? SUBNAV.vendors() : '') +
+    UI.toolbar(['<input type="search" placeholder="Search vendors..." class="search-input">','<a href="#vendors/register" class="btn btn-primary btn-sm">+ New Vendor</a>']) +
     UI.card('Vendors', UI.table(['Code','Name','Contact','Contract Start','Contract End','Compliance','Status','Contract Doc','Contractors'],
       VMP_DATA.vendors.map(v => {
         const days = VMP.daysUntil(v.contract_end_date);
@@ -260,7 +300,7 @@ const Screens = {
   'vendors-compliance': () => {
     const expiringDocs = VMP_DATA.vendorDocuments.filter(d => { const dd = VMP.daysUntil(d.expiry_date); return dd !== null && dd <= 90; });
     const banner = expiringDocs.length ? UI.alert('warning', `⚠ ${expiringDocs.length} document(s) expiring within 90 days — renew before they lapse.`) : '';
-    return banner + UI.card('Compliance Documents', UI.table(['Vendor','Type','Document','Expiry','Renewal Due','Expiry Window','Status','Actions'],
+    return SUBNAV.vendors() + banner + UI.card('Compliance Documents', UI.table(['Vendor','Type','Document','Expiry','Renewal Due','Expiry Window','Status','Actions'],
       VMP_DATA.vendorDocuments.map(d => {
         const days = VMP.daysUntil(d.expiry_date);
         const windowBadge = days === null ? '—' : UI.badge(VMP.expiryBucket(days));
@@ -455,7 +495,7 @@ const Screens = {
     ]));
   },
 
-  'contractors-onboarding': () => SH.renderOnboardingPipeline(),
+  'contractors-onboarding': () => (VMP.currentRole === 'hr' ? SUBNAV.lifecycle() : '') + SH.renderOnboardingPipeline(),
 
   'contractors-deboarding': () => {
     const finalInvoice = VMP_DATA.invoices.find(i => i.project_id === 'p1') || VMP_DATA.invoices[0];
@@ -467,14 +507,14 @@ const Screens = {
       { label: 'Equipment return', owner: 'Facilities', status: 'Completed', detail: 'Laptop + access card returned', link: '' },
       { label: 'Exit notification to stakeholders', owner: 'System', status: 'Pending', detail: 'Finance, IT, Manager, Vendor', link: '' }
     ];
-    return UI.card('Exit Checklist — Lakshmi Venkat (CON-006)', UI.table(['Step', 'Owner', 'Live Status', 'Detail', 'Action'],
+    return (VMP.currentRole === 'hr' ? SUBNAV.lifecycle() : '') + UI.card('Exit Checklist — Lakshmi Venkat (CON-006)', UI.table(['Step', 'Owner', 'Live Status', 'Detail', 'Action'],
       steps.map(s => `<tr ${s.link ? `data-nav="${s.link}"` : ''}><td>${s.label}</td><td>${s.owner}</td><td>${UI.badge(s.status)}</td><td style="font-size:.8rem;color:var(--muted)">${s.detail}</td><td>${s.link ? `<a href="#${s.link}" class="btn btn-sm btn-secondary">Open Invoice</a>` : (s.status === 'Pending' || s.status === 'In Progress' ? '<button class="btn btn-sm btn-secondary">Nudge Owner</button>' : '—')}</td></tr>`)
     ) + UI.alert('info', 'Live status is tied to each owning team (IT, Finance, HR Ops) — not a shared checkbox. The final invoice line links to the actual invoice record.') +
     UI.alert('warning', 'Exit triggered for end date June 30, 2025. Notifications sent to Finance, IT, Manager, and Vendor Side Manager.') +
     '<div class="form-actions"><button class="btn btn-danger btn-sm">Revoke Access</button><button class="btn btn-primary btn-sm">Complete Exit & Archive</button></div>');
   },
 
-  'bgv-tracker': () => UI.card('BGV Tracker', UI.table(['Contractor','Vendor','Initiated','Completed','Status','Verified By','Actions'],
+  'bgv-tracker': () => (VMP.currentRole === 'hr' ? SUBNAV.lifecycle() : '') + UI.card('BGV Tracker', UI.table(['Contractor','Vendor','Initiated','Completed','Status','Verified By','Actions'],
     VMP_DATA.bgvRecords.map(b => `<tr data-nav="contractors/profile?id=${b.contractor_id}"><td>${VMP.getContractor(b.contractor_id)?.full_name}</td><td>${VMP.getVendor(b.vendor_id)?.vendor_name}</td><td>${VMP.formatDate(b.initiated_date)}</td><td>${VMP.formatDate(b.completed_date)}</td><td>${UI.badge(b.bgv_status)}</td><td>${VMP.getUser(b.verified_by)?.full_name||'—'}</td><td><button class="btn btn-sm btn-secondary">Upload Report</button></td></tr>`)
   )),
 
@@ -599,7 +639,7 @@ const Screens = {
       UI.card('HR Ops Approves', resultsTable + UI.alert('warning', '2 rows have leave/holiday flags — resolve before HR approval.')),
       UI.card('Finance Batch', UI.alert('success', 'HR-approved hours will flow into finance payment batches.'))
     ];
-    return SH.workflowBanner('Timesheet Upload (HR Ops)', steps, 'HR Bulk Upload',
+    return (VMP.currentRole === 'hr' ? SUBNAV.timesheets() : '') + SH.workflowBanner('Timesheet Upload (HR Ops)', steps, 'HR Bulk Upload',
       'HR Ops owns the timesheet process. Flow: Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Batch.',
       panels);
   },
@@ -629,19 +669,19 @@ const Screens = {
       UI.card('Finance Reviews', UI.alert('info', 'Finance only does a read-only final check.') + doneTable),
       UI.card('Finance Batch', UI.alert('success', 'HR-approved hours flow into finance payment batches.') + doneTable)
     ];
-    return SH.workflowBanner('Timesheet Review & Approval (HR Ops)', steps, 'HR Ops Approves',
+    return (VMP.currentRole === 'hr' ? SUBNAV.timesheets() : '') + SH.workflowBanner('Timesheet Review & Approval (HR Ops)', steps, 'HR Ops Approves',
       'HR Ops owns the timesheet process. Flow: Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Reviews → Batch.',
       panels);
   },
 
-  'leave-management': () => UI.tabs([
+  'leave-management': () => (VMP.currentRole === 'hr' ? SUBNAV.leave() : '') + UI.tabs([
     { label: 'Leave Records', content: UI.table(['Contractor','Date','Type','Status','Approved By'],
       VMP_DATA.leaveRecords.map(l => `<tr><td>${VMP.getContractor(l.contractor_id)?.full_name}</td><td>${VMP.formatDate(l.leave_date)}</td><td>${l.leave_type}</td><td>${UI.badge(l.leave_status)}</td><td>${VMP.getUser(l.approved_by)?.full_name||'—'}</td></tr>`)
     )},
     { label: 'Runn Sync', content: UI.alert('success', 'Last sync: Today 06:00 AM — Success') + '<button class="btn btn-secondary btn-sm">Trigger Manual Sync</button>' }
   ]),
 
-  'leave-holidays': () => UI.card('Holiday Calendar', UI.table(['Region','Date','Holiday','Year','Status','Actions'],
+  'leave-holidays': () => (VMP.currentRole === 'hr' ? SUBNAV.leave() : '') + UI.card('Holiday Calendar', UI.table(['Region','Date','Holiday','Year','Status','Actions'],
     VMP_DATA.holidays.map(h => `<tr><td>${h.region}</td><td>${VMP.formatDate(h.holiday_date)}</td><td>${h.holiday_name}</td><td>${h.calendar_year}</td><td>${UI.badge(h.status)}</td><td><button class="btn btn-sm btn-secondary">Edit</button></td></tr>`)
   ) + '<div class="form-actions"><button class="btn btn-primary btn-sm">+ Add Holiday</button><button class="btn btn-secondary btn-sm">Import Calendar</button></div>'),
 
@@ -727,17 +767,17 @@ const Screens = {
     { label: 'PDF Upload', value: 'invoice_051.pdf' }
   ]) + '<div class="form-actions"><button class="btn btn-primary">Upload & Start Reconciliation</button></div>'),
 
-  'finance-invoice-reconcile': () => SH.renderInvoiceReconcile(),
+  'finance-invoice-reconcile': () => (VMP.currentRole === 'finance' ? SUBNAV.invoiceOps() : '') + SH.renderInvoiceReconcile(),
 
-  'finance-invoice-approval': () => SH.renderInvoiceApproval(),
-  'finance-invoice-payment': () => SH.renderInvoicePayment(),
+  'finance-invoice-approval': () => (VMP.currentRole === 'finance' ? SUBNAV.invoiceOps() : '') + SH.renderInvoiceApproval(),
+  'finance-invoice-payment': () => (VMP.currentRole === 'finance' ? SUBNAV.invoiceOps() : '') + SH.renderInvoicePayment(),
   'finance-timesheet-review': () => SH.renderFinanceTimesheetReview(),
 
   // ========== INVOICE MANAGEMENT MODULE ==========
-  'invoices-register': () => SH.renderInvoiceRegister(),
+  'invoices-register': () => (VMP.currentRole === 'hr' ? SUBNAV.hrInvoices() : '') + SH.renderInvoiceRegister(),
   'invoices-detail': () => SH.renderInvoiceDetail(),
   'invoices-batches': () => SH.renderInvoiceBatches(),
-  'invoices-validation': () => SH.renderInvoiceSowValidation(),
+  'invoices-validation': () => (VMP.currentRole === 'hr' ? SUBNAV.hrInvoices() : '') + SH.renderInvoiceSowValidation(),
   'invoices-ta-approval': () => SH.renderInvoiceTaApproval(),
   'invoices-raise': () => SH.renderRaiseInvoice(),
 
@@ -764,8 +804,8 @@ const Screens = {
   'taq-pipeline': () => SH.renderTaqPipeline(),
 
   // ========== HR HIRING OPERATIONS ==========
-  'hr-candidates': () => SH.renderHrCandidates(),
-  'hr-interviews': () => SH.renderHrInterviews(),
+  'hr-candidates': () => (VMP.currentRole === 'hr' ? SUBNAV.hiring() : '') + SH.renderHrCandidates(),
+  'hr-interviews': () => (VMP.currentRole === 'hr' ? SUBNAV.hiring() : '') + SH.renderHrInterviews(),
 
   // ========== MANAGER ==========
   'manager-candidate-review': () => SH.renderManagerCandidateReview(),
@@ -790,8 +830,8 @@ const Screens = {
     VMP_DATA.mfrs.filter(m => m.requested_by === 'u4').map(m => `<tr><td>${m.role_title}</td><td>${UI.badge(m.status)}</td><td>${VMP.formatDate(m.created_date)}</td></tr>`)
   )),
 
-  'manager-performance': () => SH.renderQuarterlyRating(),
-  'manager-performance-flag': () => SH.renderPerformanceFlag(),
+  'manager-performance': () => SUBNAV.performance() + SH.renderQuarterlyRating(),
+  'manager-performance-flag': () => SUBNAV.performance() + SH.renderPerformanceFlag(),
   'hr-performance-concerns': () => SH.renderPerformanceConcerns(),
 
   // ========== CONTRACTOR PORTAL ==========
@@ -874,7 +914,7 @@ const Screens = {
   // ========== VENDOR SIDE MANAGER ==========
   'dashboard-vendor': () => SH.renderVendorDashboard(),
   'vendor-job-orders': () => SH.renderVendorJobOrders(),
-  'vendor-candidates': () => SH.renderVendorCandidates(),
+  'vendor-candidates': () => SH.renderVendorJobOrders(),
   'vendor-contractors': () => SH.renderVendorContractors(),
   'vendor-onboarding': () => SH.renderVendorOnboarding(),
   'vendor-sow-compliance': () => SH.renderVendorSowCompliance(),
@@ -887,25 +927,7 @@ const Screens = {
 
   'shared-agreements': () => UI.card('Digital Agreements', UI.table(['Entity','Title','Version','Status','Signed Date','Signed By','Actions'],
     VMP_DATA.agreements.map(a => `<tr><td>${a.entity_type} ${a.entity_id}</td><td>${a.title}</td><td>v${a.version}</td><td>${UI.badge(a.status)}</td><td>${VMP.formatDate(a.signed_date)}</td><td>${a.signed_by.join(', ')||'—'}</td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>`)
-  ) + '<div class="form-actions"><button class="btn btn-primary btn-sm">+ Create Agreement</button></div>'),
-
-  'system-diagram': () => `<div style="padding:1rem">${UI.alert('info', 'TAQ is the orchestrator and system admin — not the operational hiring owner. HR Ops schedules interviews, sends offers, and runs onboarding/BGV.')}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem">
-    ${['TAQ Orchestrator / System Admin','HR Operations','Finance',"Contractor's Manager",'Vendor Side Manager','Contractor'].map((a,i) =>
-      `<div class="card" style="border-top:4px solid ${['#7c3aed','#2563eb','#dc2626','#ea580c','#0891b2','#16a34a'][i]}"><div class="card-body"><strong>${a}</strong><ul style="font-size:.8rem;margin-top:.5rem;padding-left:1.2rem">${{
-        'TAQ Orchestrator / System Admin': ['MFR intake & post job orders to vendors','Route vendor profiles to managers','Monitor end-to-end pipeline','System admin: users, roles, config','Does NOT interview, onboard, or run BGV'],
-        'HR Operations': ['Schedule interviews after manager selection','Send offers & contractor onboarding','BGV, documents, assignments','Vendor registration & compliance','Approved hours → Finance'],
-        'Finance': ['Rate history','Invoice generation','Payment batches','Dual approval >$10K'],
-        "Contractor's Manager": ['Raise MFR to TAQ','Review forwarded candidate profiles','Select candidates needed','Timesheet approval','Performance ratings'],
-        'Vendor Side Manager': ['Respond to job orders','Shortlist & submit candidates','Onboarding/offboarding coordination','SOW compliance','Approve payments'],
-        'Contractor': ['Document submission','Timesheet entry','Leave requests','Portal access']
-      }[a].map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`
-    ).join('')}
-  </div><div class="card" style="margin-top:1rem"><div class="card-header"><h3>Key Flows</h3></div><div class="card-body"><ol style="font-size:.875rem;line-height:2">
-    <li><strong>Hiring Orchestration:</strong> Manager MFR → TAQ posts to vendor → Vendor shortlists → TAQ routes to manager → Manager selects → <strong>HR schedules interview</strong> → HR offer & onboarding</li>
-    <li><strong>Hire to Pay:</strong> Active contractor → Rate → Timesheet Confirmation → Finance Batch → Invoice → <strong>Vendor Payment Approval</strong></li>
-    <li><strong>Transfer:</strong> Assignment Transfer → Approval → Close Old / Open New → Update Reporting Manager → Clear Anomaly</li>
-    <li><strong>Exit:</strong> End Date Trigger → Vendor & HR Exit Checklist → Access Revoke → Final Timesheet → Archive</li>
-  </ol></div></div></div>`
+  ) + '<div class="form-actions"><button class="btn btn-primary btn-sm">+ Create Agreement</button></div>')
 };
 
 // Handle profile route

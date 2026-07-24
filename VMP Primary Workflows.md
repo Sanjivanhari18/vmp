@@ -107,7 +107,17 @@ Contractor - Submit Leave Request -> Manager - Approve or Reject Leave -> System
 
 ### Timesheet Submission & Confirmation
 
-Contractor - Upload Timesheet File (CSV/Excel) or Enter Weekly Hours -> System - Parse & Extract Daily Hours -> System - Run Holiday/Leave Cross-Check (flags only) -> System - Send Confirmation Email to Contractor (CC Reporting Manager) -> Contractor - Confirm Yes or No via Email Link -> System - Record Confirmation Status -> Manager - View Confirmed / Rejected Status in Portal (read-only) -> Finance - Include Confirmed Hours in Payment Batch (downstream)
+Contractor - Upload Timesheet File (CSV/Excel) or Enter Weekly Hours -> System - Parse & Extract Daily Hours -> System - Run Holiday/Leave Cross-Check (flags only) -> System - Send Confirmation Email to Contractor (CC Reporting Manager) -> Contractor - Confirm Yes or No via Email Link -> System - Record Confirmation Status -> Manager (Reporting Manager / Supervisor) - Review & Approve or Reject Contractor Timesheet -> System - Route Manager-Approved Timesheet to Finance Final Check Queue
+
+_Portal flow (mockup): Contractor Submits → Supervisor Approves → HR Ops Approves → Finance Final Check → Payment Batch. Manager approval of their contractors’ hours is the gate before Finance re-checks commercial data._
+
+---
+
+### Finance Timesheet Final Check (Pre-Vendor Payment)
+
+System - Queue Manager-Approved (and HR Ops-cleared) Timesheets for Finance -> Finance - Open Timesheet Review (Final Check) -> Finance - Verify Pay Rate Against Approved Contractor Rate / Rate Card for the Period -> Finance - Verify Work Period Dates Against Assignment Start/End and Rate Effective Dates -> Finance - Scan for Anomalies (Missing Rate, Rate Outside Effective Period, Leave/Holiday Mismatch, Stale Reporting Manager, Inactive Assignment, Hours Outside Tenure) -> Finance - Clear Clean Lines or Block Exception Lines with Reason -> System - Record Finance Clear / Block Decision & Audit Log -> Finance - Release Cleared Timesheets to Payment Batch -> System - Mark Cleared Hours Ready for Vendor Payment -> Vendor - Receive Approved Hours / Batch for Contractor Pay
+
+_Control note: Finance does not re-approve hours already signed off by the manager. Finance re-validates pay rates, dates, and anomaly signals before any amount is sent to the vendor for payment. Blocked lines stay out of the vendor payment file until resolved._
 
 ---
 
@@ -145,7 +155,9 @@ _Note: During onboarding, assignment is created in Draft/Pending before rate sub
 
 ### Finance Payment Batch
 
-Finance - Generate Batch from Contractor-Confirmed Timesheets -> System - Validate Assignment, Rate & Reporting Manager -> System - Flag Exceptions (Blocked Lines) -> Finance - Review & Remove Blocked Lines -> Finance - Approve Batch -> System - Mark Batch Ready for Invoicing
+Finance - Generate Batch from Finance-Cleared Timesheets (post Final Check) -> System - Validate Assignment, Rate & Reporting Manager -> System - Flag Exceptions (Blocked Lines) -> Finance - Review & Remove Blocked Lines -> Finance - Approve Batch -> System - Mark Batch Ready for Invoicing / Vendor Payment
+
+_Prerequisite: Timesheets must pass Finance Timesheet Final Check (pay rate, dates, anomaly scan) before they enter a payment batch sent to the vendor._
 
 ---
 

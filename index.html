@@ -9,7 +9,12 @@
 <body>
   <div class="login-page" id="login-screen">
     <div class="login-card">
-      <div class="login-brand">VMP Portal</div>
+      <div class="login-brand">
+        <div class="brand-lockup">
+          <img src="assets/images/winter-logo.png" alt="winter" class="brand-logo">
+          <span class="brand-name">Winter Link</span>
+        </div>
+      </div>
       <h1>Sign in</h1>
       <p class="subtitle">Vendor Management Platform — use your company account to continue.</p>
       <form id="login-form" novalidate>
@@ -31,38 +36,42 @@
   <div class="app-shell" id="app-shell" style="display:none">
     <aside class="sidebar role-taq" id="sidebar">
       <div class="sidebar-brand">
-        VMP Portal
-        <span id="sidebar-subtitle">Vendor Management Platform</span>
+        <div class="brand-lockup">
+          <img src="assets/images/winter-logo.png" alt="winter" class="brand-logo">
+          <span class="brand-name">Winter Link</span>
+        </div>
       </div>
-      <div class="sidebar-role-label" id="sidebar-role-label">TAQ Orchestrator / System Admin</div>
+      <div class="sidebar-role-label" id="sidebar-role-label">TAQ / System Admin</div>
       <nav class="sidebar-nav" id="sidebar-nav"></nav>
-      <div id="sidebar-footer" style="padding:.5rem 0 1rem;border-top:1px solid #334155"></div>
+      <div class="sidebar-footer" id="sidebar-footer"></div>
     </aside>
 
     <div class="main-area">
       <header class="topbar">
         <div class="topbar-left">
           <h2>Dashboard</h2>
-          <div class="breadcrumb">VMP</div>
         </div>
         <div class="topbar-right">
           <label for="role-switcher" style="font-size:.8rem;color:var(--muted);white-space:nowrap">View as:</label>
           <select id="role-switcher" style="padding:.4rem .6rem;border-radius:6px;border:1px solid var(--border);font-size:.85rem;min-width:200px">
-            <option value="taq">TAQ Orchestrator / System Admin</option>
+            <option value="taq">TAQ / System Admin</option>
             <option value="hr">HR Operations</option>
             <option value="finance">Finance</option>
             <option value="manager">Contractor's Manager</option>
             <option value="contractor">Contractor</option>
             <option value="vendor">Vendor Side Manager</option>
           </select>
-          <span class="role-badge taq" id="role-badge">TAQ Orchestrator / System Admin</span>
           <div class="notif-wrap" id="notif-wrap">
             <button type="button" class="notif-bell" id="notif-bell" title="Notifications" aria-label="Notifications" aria-expanded="false">
-              🔔<span class="notif-count" id="notif-count">5</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/>
+                <path d="M10 20a2 2 0 0 0 4 0"/>
+              </svg>
+              <span class="notif-count" id="notif-count">5</span>
             </button>
             <div class="notif-panel" id="notif-panel" hidden>
               <div class="notif-panel-header">
-                <strong>Notifications</strong>
+                <span>Notifications</span>
                 <button type="button" class="btn btn-sm btn-secondary" id="notif-mark-all">Mark all read</button>
               </div>
               <div class="notif-panel-list" id="notif-panel-list"></div>
